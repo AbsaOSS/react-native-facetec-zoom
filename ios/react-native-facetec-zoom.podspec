@@ -12,6 +12,7 @@ Pod::Spec.new do |s|
   s.source        = { :git => 'https://github.com/jakubkoci/react-native-facetec-zoom.git', :branch => 'fix/native-dependencies' }
   s.source_files = "*.{h,m,swift}"
   s.platform      = :ios, '7.0'
+  s.swift_version = '4.2'
   s.dependency    'React'
   s.dependency    'ZoomAuthenticationHybrid'
 
