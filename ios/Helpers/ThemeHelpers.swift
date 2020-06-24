@@ -66,8 +66,8 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundBorderColor = primaryColor
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundBorderWidth = 2
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundCornerRadius = 5
-            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenPassportFrameImage = UIImage(named: "zoom_passport_frame_green")
-            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenIDCardFrameImage = UIImage(named: "zoom_id_card_frame_green")
+//            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenPassportFrameImage = UIImage(named: "zoom_passport_frame_green")
+//            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenIDCardFrameImage = UIImage(named: "zoom_id_card_frame_green")
             // Result Screen Customization
             ZoomGlobalState.currentCustomization.resultScreenCustomization.backgroundColors = [backgroundColor, backgroundColor]
             ZoomGlobalState.currentCustomization.resultScreenCustomization.foregroundColor = primaryColor
@@ -91,7 +91,7 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.ovalCustomization.progressColor2 = primaryColor
             // Cancel Button Customization
             ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImage = UIImage(named: "cancel_round_green")
-            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "cancel_round_green")
+//            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "cancel_round_green")
         }
         else if theme == "Dark-Side" {
             let primaryColor = UIColor(red: 0, green: 0.675, blue: 0.929, alpha: 1) // blue
@@ -143,8 +143,8 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundBorderColor = primaryColor
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundBorderWidth = 2
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundCornerRadius = 8
-            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenPassportFrameImage = UIImage(named: "zoom_passport_frame_blue")
-            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenIDCardFrameImage = UIImage(named: "zoom_id_card_frame_blue")
+//            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenPassportFrameImage = UIImage(named: "zoom_passport_frame_blue")
+//            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenIDCardFrameImage = UIImage(named: "zoom_id_card_frame_blue")
             // Result Screen Customization
             ZoomGlobalState.currentCustomization.resultScreenCustomization.backgroundColors = [backgroundColor, backgroundColor]
             ZoomGlobalState.currentCustomization.resultScreenCustomization.foregroundColor = primaryColor
@@ -168,7 +168,7 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.ovalCustomization.progressColor2 = primaryColor.withAlphaComponent(0.5)
             // Cancel Button Customization
             ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImage = UIImage(named: "double_chevron_left_blue")
-            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "double_chevron_left_blue")
+//            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "double_chevron_left_blue")
         }
         else if theme == "Bitcoin Exchange" {
             let primaryColor = UIColor(red: 0.969, green: 0.588, blue: 0.204, alpha: 1) // orange
@@ -221,8 +221,8 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundBorderColor = primaryColor
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundBorderWidth = 0
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundCornerRadius = 8
-            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenPassportFrameImage = UIImage(named: "zoom_passport_frame_orange")
-            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenIDCardFrameImage = UIImage(named: "zoom_id_card_frame_orange")
+//            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenPassportFrameImage = UIImage(named: "zoom_passport_frame_orange")
+//            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenIDCardFrameImage = UIImage(named: "zoom_id_card_frame_orange")
             // Result Screen Customization
             ZoomGlobalState.currentCustomization.resultScreenCustomization.backgroundColors = [backgroundColor, backgroundColor]
             ZoomGlobalState.currentCustomization.resultScreenCustomization.foregroundColor = primaryColor
@@ -246,7 +246,7 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.ovalCustomization.progressColor2 = secondaryColor
             // Cancel Button Customization
             ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImage = UIImage(named: "back_orange")
-            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "back_orange")
+//            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "back_orange")
         }
         else if theme == "eKYC" {
             let primaryColor = UIColor(red: 0.929, green: 0.110, blue: 0.141, alpha: 1) // red
@@ -299,8 +299,8 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundBorderColor = primaryColor
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundBorderWidth = 0
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundCornerRadius = 2
-            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenPassportFrameImage = UIImage(named: "zoom_passport_frame_red")
-            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenIDCardFrameImage = UIImage(named: "zoom_id_card_frame_red")
+//            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenPassportFrameImage = UIImage(named: "zoom_passport_frame_red")
+//            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenIDCardFrameImage = UIImage(named: "zoom_id_card_frame_red")
             // Result Screen Customization
             ZoomGlobalState.currentCustomization.resultScreenCustomization.backgroundColors = [backgroundColor, backgroundColor]
             ZoomGlobalState.currentCustomization.resultScreenCustomization.foregroundColor = secondaryColor
@@ -324,7 +324,7 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.ovalCustomization.progressColor2 = primaryColor.withAlphaComponent(0.5)
             // Cancel Button Customization
             ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImage = UIImage(named: "cancel_box_red")
-            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "cancel_box_red")
+//            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "cancel_box_red")
         }
         else if theme == "Sample Bank" {
             let primaryColor = UIColor.white
@@ -377,8 +377,8 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundBorderColor = backgroundColor
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundBorderWidth = 2
             ZoomGlobalState.currentCustomization.idScanCustomization.reviewScreenTextBackgroundCornerRadius = 2
-            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenPassportFrameImage = UIImage(named: "zoom_passport_frame_navy")
-            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenIDCardFrameImage = UIImage(named: "zoom_id_card_frame_navy")
+//            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenPassportFrameImage = UIImage(named: "zoom_passport_frame_navy")
+//            ZoomGlobalState.currentCustomization.idScanCustomization.captureScreenIDCardFrameImage = UIImage(named: "zoom_id_card_frame_navy")
             // Result Screen Customization
             ZoomGlobalState.currentCustomization.resultScreenCustomization.backgroundColors = [backgroundColor, backgroundColor]
             ZoomGlobalState.currentCustomization.resultScreenCustomization.foregroundColor = primaryColor
@@ -402,7 +402,7 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.ovalCustomization.progressColor2 = primaryColor.withAlphaComponent(0.5)
             // Cancel Button Customization
             ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImage = UIImage(named: "cancel_white")
-            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "cancel_navy")
+//            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "cancel_navy")
         }
         
         Zoom.sdk.setCustomization(ZoomGlobalState.currentCustomization)
