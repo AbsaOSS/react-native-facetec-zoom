@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
-//import android.support.annotation.NonNull;
+//import androidx.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
@@ -24,7 +24,10 @@ import com.facetec.zoom.sdk.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import ZoomProcessors.LivenessCheckProcessor;
 import ZoomProcessors.Processor;
@@ -44,6 +47,9 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         @Override
         public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
             super.onActivityResult(activity, requestCode, resultCode, data);
+
+            Log.d("ZoomSDK", "onActivityResult");
+
             if (requestCode != ZoomSDK.REQUEST_CODE_SESSION) return;
             if (verificationPromise == null) return;
 
@@ -98,6 +104,7 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
 
         final String facemapEncryptionKey = opts.hasKey("facemapEncryptionKey") ? opts.getString("facemapEncryptionKey") : ZoomGlobalState.PublicFaceMapEncryptionKey;
 
+        Log.d("ZoomSDK", String.format("init with licenseKey facemapEncryptionKey: %s %s", licenseKey, facemapEncryptionKey));
 
         AsyncTask.execute(new Runnable() {
             @Override
@@ -114,24 +121,40 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
                 frameCustomization.sizeRatio = (float) opts.getDouble("sizeRatio");
                 currentCustomization.setFrameCustomization(frameCustomization);
 
+                Log.d("ZoomSDK", String.format("run init with licenseKey facemapEncryptionKey: \n %s \n %s \n %s", licenseKey, facemapEncryptionKey, ZoomGlobalState.PublicFaceMapEncryptionKey));
+                Log.d("ZoomSDK", String.format("facemapEncryptionKey equals: \n %s \n %s \n %b", facemapEncryptionKey, ZoomGlobalState.PublicFaceMapEncryptionKey, facemapEncryptionKey.equals(ZoomGlobalState.PublicFaceMapEncryptionKey)));
+
+                byte[] faceEncKeyBytes = facemapEncryptionKey.getBytes();
+                byte[] publicFaceEncBytes = ZoomGlobalState.PublicFaceMapEncryptionKey.getBytes();
+                Log.d("ZoomSDK", String.format("facemapEncryptionKey byte array: \n %s", Arrays.toString(faceEncKeyBytes)));
+                Log.d("ZoomSDK", String.format("PublicFaceMapEncryptionKey byte array: \n %s", Arrays.toString(publicFaceEncBytes)));
+
+
+                Log.d("ZoomSDK", String.format("facemapEncryptionKey string: \n %s", new String(faceEncKeyBytes, StandardCharsets.UTF_8)));
+                Log.d("ZoomSDK", String.format("PublicFaceMapEncryptionKey string: \n %s", new String(publicFaceEncBytes, StandardCharsets.UTF_8)));
+                Log.d("ZoomSDK", String.format("eq string: \n %s", new String(faceEncKeyBytes, StandardCharsets.UTF_8).equals(new String(publicFaceEncBytes, StandardCharsets.UTF_8))));
+
                 ZoomSDK.setCustomization(currentCustomization);
-                ZoomSDK.initialize(getCurrentActivity(), licenseKey, new ZoomSDK.InitializeCallback() {
-                    @Override
-                    public void onCompletion(boolean successful) {
-                        WritableMap map = Arguments.createMap();
-                        map.putBoolean("success", successful);
-                        if (successful) {
-                            initialized = true;
-                        } else {
-                            map.putString("status", getSdkStatusString());
+                ZoomSDK.initialize(
+                        getCurrentActivity(),
+                        licenseKey,
+                        facemapEncryptionKey,
+                        new ZoomSDK.InitializeCallback() {
+                            @Override
+                            public void onCompletion(final boolean successful) {
+                                WritableMap map = Arguments.createMap();
+                                map.putBoolean("success", successful);
+                                if (successful) {
+                                    initialized = true;
+                                } else {
+                                    map.putString("status", getSdkStatusString());
+                                }
+
+                                Log.d(TAG, String.format("initialized: %b", successful));
+                                promise.resolve(map);
+                            }
                         }
-
-                        Log.d(TAG, String.format("initialized: %b", successful));
-                        promise.resolve(map);
-                    }
-                });
-
-                ZoomSDK.setFaceMapEncryptionKey(facemapEncryptionKey);
+                );
             }
         });
     }
@@ -165,6 +188,7 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void verify(ReadableMap opts, final Promise promise) {
         if (!initialized) {
+            Log.d("ZoomSDK", "Not initialized");
             promise.reject(new RuntimeException("NotInitialized"));
             return;
         }
@@ -172,8 +196,16 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         verificationPromise = promise;
         returnBase64 = opts.getBoolean("returnBase64");
         Activity activity = getCurrentActivity();
-        new LivenessCheckProcessor(activity, this.licenseKey);
+        new LivenessCheckProcessor( activity, sessionTokenErrorCallback);
     }
+
+    // Handle error retrieving the Session Token from the server
+    Processor.SessionTokenErrorCallback sessionTokenErrorCallback = new Processor.SessionTokenErrorCallback() {
+        @Override
+        public void onError() {
+            Log.d("ZoomSDK", "Error session token callback.");
+        }
+    };
 
 //  @ReactMethod
 //  public void handleVerificationSuccessResult(ZoomVerificationResult successResult) {
@@ -315,4 +347,5 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
             }
         }
     }
+
 }

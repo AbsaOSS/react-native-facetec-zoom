@@ -1,8 +1,14 @@
 // Demonstrates performing a Liveness Check.
 
+// The FaceTec Device SDKs will cancel from the Progress Screen if onProgress() is not called for
+// 60 seconds. This provides a failsafe for users getting stuck in the process because of a networking
+// issue. If you would like to force users to stay on the Progress Screen for longer than 60 seconds,
+// you can write code in the FaceMap or ID Scan Processor to call onProgress() via your own custom logic.
 package ZoomProcessors;
 
 import android.content.Context;
+import android.util.Log;
+
 import org.json.JSONObject;
 
 import com.facetec.zoom.sdk.*;
@@ -11,12 +17,21 @@ public class LivenessCheckProcessor extends Processor implements ZoomFaceMapProc
     ZoomFaceMapResultCallback zoomFaceMapResultCallback;
     ZoomSessionResult latestZoomSessionResult;
     private boolean _isSuccess = false;
-    private final String licenseKey;
 
-    public LivenessCheckProcessor(Context context, String licenseKey) {
-        // Launch the ZoOm Session.
-        this.licenseKey = licenseKey;
-        ZoomSessionActivity.createAndLaunchZoomSession(context, this);
+    public LivenessCheckProcessor(final Context context, final SessionTokenErrorCallback sessionTokenErrorCallback) {
+        Log.d("ZoomSDK", "Starting liveness check");
+        NetworkingHelpers.getSessionToken(new NetworkingHelpers.SessionTokenCallback() {
+            @Override
+            public void onResponse(String sessionToken) {
+                // Launch the ZoOm Session.
+                ZoomSessionActivity.createAndLaunchZoomSession(context, LivenessCheckProcessor.this, sessionToken);
+            }
+
+            @Override
+            public void onError() {
+                sessionTokenErrorCallback.onError();
+            }
+        });
     }
 
     public boolean isSuccess() {
@@ -25,6 +40,7 @@ public class LivenessCheckProcessor extends Processor implements ZoomFaceMapProc
 
     // Required function that handles calling ZoOm Server to get result and decides how to continue.
     public void processZoomSessionResultWhileZoomWaits(final ZoomSessionResult zoomSessionResult, final ZoomFaceMapResultCallback zoomFaceMapResultCallback) {
+        Log.d("ZoomSDK", "processZoomSessionResultWhileZoomWaits");
         this.latestZoomSessionResult = zoomSessionResult;
         this.zoomFaceMapResultCallback = zoomFaceMapResultCallback;
 
@@ -40,7 +56,7 @@ public class LivenessCheckProcessor extends Processor implements ZoomFaceMapProc
         }
 
         // Create and parse request to ZoOm Server.
-        NetworkingHelpers.getLivenessCheckResponseFromZoomServer(licenseKey, zoomSessionResult, this.zoomFaceMapResultCallback, new FaceTecManagedAPICallback() {
+        NetworkingHelpers.getLivenessCheckResponseFromZoomServer(zoomSessionResult, this.zoomFaceMapResultCallback, new FaceTecManagedAPICallback() {
             @Override
             public void onResponse(JSONObject responseJSON) {
                 UXNextStep nextStep = ServerResultHelpers.getLivenessNextStep(responseJSON);
