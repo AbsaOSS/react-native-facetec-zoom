@@ -214,6 +214,12 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
 //      currentCustomization.frameCustomization.topMargin = options["topMargin"] as! Int32
 //    }
 
+    addFrameCustomizations(currentCustomization: currentCustomization, options: options)
+    addFeedbackCustomizations(currentCustomization: currentCustomization, options: options)
+    addOvalCustomizations(currentCustomization: currentCustomization, options: options)
+    addGuidanceCustomizations(currentCustomization: currentCustomization, options: options)
+    addResultScreenCustomizations(currentCustomization: currentCustomization, options: options)
+
     // Apply the customization changes
     Zoom.sdk.setCustomization(currentCustomization)
     Zoom.sdk.initialize(
@@ -245,17 +251,124 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       }
     )
   }
+    
+  func addFrameCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
+    // Sample UI Customization: vertically center the ZoOm frame within the device's display
+    if (options["centerFrame"] as? Bool)! {
+      centerZoomFrameCustomization(currentZoomCustomization: currentCustomization)
+    }
 
-//  func centerZoomFrameCustomization(currentZoomCustomization: ZoomCustomization) {
-//    let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
-//    var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
-//    // Detect iPhone X and iPad displays
-//    if UIScreen.main.fixedCoordinateSpace.bounds.size.height >= 812 {
-//      let screenWidth = UIScreen.main.fixedCoordinateSpace.bounds.size.width
-//      frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
-//    }
-//    let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
-//
-//    currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
-//  }
+    if (options["backgroundColor"] != nil) {
+      currentCustomization.frameCustomization.backgroundColor = convertToUIColor(hex: options["backgroundColor"] as! String)
+    }
+
+    if (options["borderColor"] != nil) {
+      currentCustomization.frameCustomization.borderColor = convertToUIColor(hex: options["borderColor"] as! String)
+    }
+  }
+    
+  func addFeedbackCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
+    let feedbackCustomization: Dictionary<String, Any> = options["feedbackCustomization"] as! Dictionary<String, Any>
+    // Create gradient layer for a custom feedback bar background on iOS
+    if (!feedbackCustomization.isEmpty) {
+      let backgroundColors = feedbackCustomization["backgroundColor"] as! Array<String>
+      let zoomGradientLayer = createGradientLayer(_self: self, hexColor1: backgroundColors[0], hexColor2: backgroundColors[1])
+      currentCustomization.feedbackCustomization.backgroundColor = zoomGradientLayer
+      print("Feedback customizations applied.")
+    }
+  }
+  
+  func addOvalCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
+    let ovalCustomization: Dictionary<String, Any> = options["ovalCustomization"] as! Dictionary<String, Any>
+    if (!ovalCustomization.isEmpty) {
+      let supportedColorOvalCustomizations = ["strokeColor", "progressColor1", "progressColor2"]
+      for property in supportedColorOvalCustomizations {
+        if (ovalCustomization[property] != nil) {
+          let value = ovalCustomization[property]
+          currentCustomization.ovalCustomization.setValue(convertToUIColor(hex: value as! String), forKey: property)
+        }
+      }
+      print("Oval customizations applied.")
+    }
+  }
+  
+  func addGuidanceCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
+    let guidanceCustomization: Dictionary<String, Any> = options["guidanceCustomization"] as! Dictionary<String, Any>
+    // Create gradient layer for a custom feedback bar background on iOS
+    if (!guidanceCustomization.isEmpty) {
+      currentCustomization.guidanceCustomization.foregroundColor = convertToUIColor(hex: guidanceCustomization["foregroundColor"] as! String)
+      currentCustomization.guidanceCustomization.readyScreenHeaderTextColor = convertToUIColor(hex: guidanceCustomization["readyScreenHeaderTextColor"] as! String)
+      currentCustomization.guidanceCustomization.readyScreenSubtextTextColor = convertToUIColor(hex: guidanceCustomization["readyScreenSubtextTextColor"] as! String)
+      
+      currentCustomization.guidanceCustomization.buttonTextNormalColor = convertToUIColor(hex: guidanceCustomization["buttonTextNormalColor"] as! String)
+      currentCustomization.guidanceCustomization.buttonTextHighlightColor = convertToUIColor(hex: guidanceCustomization["buttonTextHighlightColor"] as! String)
+      currentCustomization.guidanceCustomization.buttonTextDisabledColor = convertToUIColor(hex: guidanceCustomization["buttonTextDisabledColor"] as! String)
+      
+      currentCustomization.guidanceCustomization.buttonBackgroundNormalColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundNormalColor"] as! String)
+      currentCustomization.guidanceCustomization.buttonBackgroundHighlightColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundHighlightColor"] as! String)
+      currentCustomization.guidanceCustomization.buttonBackgroundDisabledColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundDisabledColor"] as! String)
+      
+      print("Guidance customizations applied.")
+    }
+  }
+  
+  func addResultScreenCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
+    let resultScreenCustomization: Dictionary<String, Any> = options["resultScreenCustomization"] as! Dictionary<String, Any>
+    // Create gradient layer for a custom feedback bar background on iOS
+    if (!resultScreenCustomization.isEmpty) {
+      currentCustomization.resultScreenCustomization.foregroundColor = convertToUIColor(hex: resultScreenCustomization["foregroundColor"] as! String)
+      currentCustomization.resultScreenCustomization.activityIndicatorColor = convertToUIColor(hex: resultScreenCustomization["activityIndicatorColor"] as! String)
+      currentCustomization.resultScreenCustomization.uploadProgressFillColor = convertToUIColor(hex: resultScreenCustomization["uploadProgressFillColor"] as! String)
+      currentCustomization.resultScreenCustomization.uploadProgressTrackColor = convertToUIColor(hex: resultScreenCustomization["uploadProgressTrackColor"] as! String)
+      
+      currentCustomization.resultScreenCustomization.resultAnimationBackgroundColor = convertToUIColor(hex: resultScreenCustomization["resultAnimationBackgroundColor"] as! String)
+      currentCustomization.resultScreenCustomization.resultAnimationForegroundColor = convertToUIColor(hex: resultScreenCustomization["resultAnimationForegroundColor"] as! String)
+
+      print("Guidance customizations applied.")
+    }
+  }
+    
+
+  func centerZoomFrameCustomization(currentZoomCustomization: ZoomCustomization) {
+    let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
+    var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+    // Detect iPhone X and iPad displays
+    if UIScreen.main.fixedCoordinateSpace.bounds.size.height >= 812 {
+      let screenWidth = UIScreen.main.fixedCoordinateSpace.bounds.size.width
+      frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+    }
+    let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
+
+    currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
+  }
+}
+
+func createGradientLayer(_self: ZoomAuth, hexColor1: String, hexColor2: String) -> CAGradientLayer {
+  let gradientLayer = CAGradientLayer()
+  gradientLayer.frame = _self.view().bounds
+  gradientLayer.colors = [convertToUIColor(hex: hexColor1).cgColor, convertToUIColor(hex: hexColor2).cgColor]
+  _self.view().layer.addSublayer(gradientLayer)
+  return gradientLayer
+}
+
+func convertToUIColor(hex: String, alpha: Int = 1) -> UIColor {
+  if hex.hasPrefix("#") {
+    let start = hex.index(hex.startIndex, offsetBy: 1)
+    let hexColor = String(hex[start...])
+
+    if hexColor.count == 6 {
+      let scanner = Scanner(string: hexColor)
+      var hexNumber: UInt64 = 0
+
+      if scanner.scanHexInt64(&hexNumber) {
+        let red = CGFloat((hexNumber & 0xff0000) >> 16) / 255
+        let green = CGFloat((hexNumber & 0xff00) >> 8) / 255
+        let blue = CGFloat(hexNumber & 0xff) / 255
+
+        return UIColor(red: red, green: green, blue: blue, alpha: CGFloat(alpha))
+      }
+    }
+  }
+
+  return UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
 }
