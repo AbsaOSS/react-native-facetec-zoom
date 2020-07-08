@@ -4,9 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
-//import android.support.annotation.NonNull;
+//import androidx.annotation.NonNull;
 import android.util.Base64;
 import android.util.Log;
 
@@ -17,6 +18,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -109,10 +111,12 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
 //        currentCustomization.showRetryScreen= opts.getBoolean("showRetryScreen");
 //        currentCustomization.enableLowLightMode = opts.getBoolean("enableLowLightMode");
 
-                ZoomFrameCustomization frameCustomization = new ZoomFrameCustomization();
-                frameCustomization.topMargin = opts.getInt("topMargin");
-                frameCustomization.sizeRatio = (float) opts.getDouble("sizeRatio");
-                currentCustomization.setFrameCustomization(frameCustomization);
+                addFrameCustomizations(currentCustomization, opts);
+                addFeedbackCustomizations(currentCustomization, opts);
+                addOvalCustomizations(currentCustomization, opts);
+                addGuidanceCustomizations(currentCustomization, opts);
+                addResultScreenCustomization(currentCustomization, opts);
+                addOverlayCustomization(currentCustomization, opts);
 
                 ZoomSDK.setCustomization(currentCustomization);
                 ZoomSDK.initialize(getCurrentActivity(), licenseKey, new ZoomSDK.InitializeCallback() {
@@ -134,6 +138,142 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
                 ZoomSDK.setFaceMapEncryptionKey(facemapEncryptionKey);
             }
         });
+    }
+
+    private void addFrameCustomizations(ZoomCustomization currentCustomization, ReadableMap opts) {
+        ZoomFrameCustomization frameCustomization = new ZoomFrameCustomization();
+        frameCustomization.topMargin = opts.getInt("topMargin");
+        frameCustomization.sizeRatio = (float)opts.getDouble("sizeRatio");
+
+        if (opts.hasKey("backgroundColor")) {
+            frameCustomization.backgroundColor = Color.parseColor(opts.getString("backgroundColor"));
+        }
+
+        if (opts.hasKey("borderColor")) {
+            frameCustomization.borderColor= Color.parseColor(opts.getString("borderColor"));
+        }
+
+        currentCustomization.setFrameCustomization(frameCustomization);
+    }
+
+    private void addFeedbackCustomizations(ZoomCustomization currentCustomization, ReadableMap opts) {
+        if (!opts.isNull("feedbackCustomization")) {
+            ZoomFeedbackCustomization feedbackCustomization = new ZoomFeedbackCustomization();
+            ReadableMap feedbackCustomizationOptions = opts.getMap("feedbackCustomization");
+
+            if (feedbackCustomizationOptions.hasKey("backgroundColor")) {
+                ReadableArray backgroundColors = feedbackCustomizationOptions.getArray("backgroundColor");
+
+                // This attribute contains array of 2 colors for gradient, but it seems like Java API
+                // doesn't allow to set gradient, so we take just the first.
+                String backgroundColor = backgroundColors.getString(0);
+                feedbackCustomization.backgroundColors = Color.parseColor(backgroundColor);
+            }
+
+            currentCustomization.setFeedbackCustomization(feedbackCustomization);
+            Log.d(TAG, "Feedback customizations applied.");
+        }
+    }
+
+    private void addOvalCustomizations(ZoomCustomization currentCustomization, ReadableMap opts) {
+        if (!opts.isNull("ovalCustomization")) {
+            ZoomOvalCustomization ovalCustomization = new ZoomOvalCustomization();
+            ReadableMap ovalCustomizationOptions = opts.getMap("ovalCustomization");
+            if (ovalCustomizationOptions.hasKey("strokeColor")) {
+                ovalCustomization.strokeColor = Color.parseColor(ovalCustomizationOptions.getString("strokeColor"));
+            }
+            if (ovalCustomizationOptions.hasKey("progressColor1")) {
+                ovalCustomization.progressColor1 = Color.parseColor(ovalCustomizationOptions.getString("progressColor1"));
+            }
+            if (ovalCustomizationOptions.hasKey("progressColor2")) {
+                ovalCustomization.progressColor2 = Color.parseColor(ovalCustomizationOptions.getString("progressColor2"));
+            }
+            currentCustomization.setOvalCustomization(ovalCustomization);
+            Log.d(TAG, "Oval customizations applied.");
+        }
+    }
+
+
+    private void addGuidanceCustomizations(ZoomCustomization currentCustomization, ReadableMap opts) {
+        if (!opts.isNull("guidanceCustomization")) {
+            ZoomGuidanceCustomization guidanceCustomization = new ZoomGuidanceCustomization();
+            ReadableMap guidanceCustomizationOptions = opts.getMap("guidanceCustomization");
+
+            if (guidanceCustomizationOptions.hasKey("foregroundColor")) {
+                guidanceCustomization.foregroundColor = Color.parseColor(guidanceCustomizationOptions.getString("foregroundColor"));
+            }
+            if (guidanceCustomizationOptions.hasKey("readyScreenHeaderTextColor")) {
+                guidanceCustomization.readyScreenHeaderTextColor = Color.parseColor(guidanceCustomizationOptions.getString("readyScreenHeaderTextColor"));
+            }
+            if (guidanceCustomizationOptions.hasKey("readyScreenSubtextTextColor")) {
+                guidanceCustomization.readyScreenSubtextTextColor = Color.parseColor(guidanceCustomizationOptions.getString("readyScreenSubtextTextColor"));
+            }
+            if (guidanceCustomizationOptions.hasKey("buttonTextNormalColor")) {
+                guidanceCustomization.buttonTextNormalColor = Color.parseColor(guidanceCustomizationOptions.getString("buttonTextNormalColor"));
+            }
+            if (guidanceCustomizationOptions.hasKey("buttonTextHighlightColor")) {
+                guidanceCustomization.buttonTextHighlightColor = Color.parseColor(guidanceCustomizationOptions.getString("buttonTextHighlightColor"));
+            }
+            if (guidanceCustomizationOptions.hasKey("buttonTextDisabledColor")) {
+                guidanceCustomization.buttonTextDisabledColor = Color.parseColor(guidanceCustomizationOptions.getString("buttonTextDisabledColor"));
+            }
+            if (guidanceCustomizationOptions.hasKey("buttonBackgroundNormalColor")) {
+                guidanceCustomization.buttonBackgroundNormalColor = Color.parseColor(guidanceCustomizationOptions.getString("buttonBackgroundNormalColor"));
+            }
+            if (guidanceCustomizationOptions.hasKey("buttonBackgroundHighlightColor")) {
+                guidanceCustomization.buttonBackgroundHighlightColor = Color.parseColor(guidanceCustomizationOptions.getString("buttonBackgroundHighlightColor"));
+            }
+            if (guidanceCustomizationOptions.hasKey("buttonBackgroundDisabledColor")) {
+                guidanceCustomization.buttonBackgroundDisabledColor = Color.parseColor(guidanceCustomizationOptions.getString("buttonBackgroundDisabledColor"));
+            }
+
+            currentCustomization.setGuidanceCustomization(guidanceCustomization);
+            Log.d(TAG, "Guidance customizations applied.");
+        }
+    }
+
+    private void addResultScreenCustomization(ZoomCustomization currentCustomization, ReadableMap opts) {
+        if (!opts.isNull("resultScreenCustomization")) {
+            ZoomResultScreenCustomization resultScreenCustomization = new ZoomResultScreenCustomization();
+            ReadableMap resultScreenCustomizationOptions = opts.getMap("resultScreenCustomization");
+
+            if (resultScreenCustomizationOptions.hasKey("foregroundColor")) {
+                resultScreenCustomization.foregroundColor = Color.parseColor(resultScreenCustomizationOptions.getString("foregroundColor"));
+            }
+            if (resultScreenCustomizationOptions.hasKey("activityIndicatorColor")) {
+                resultScreenCustomization.activityIndicatorColor = Color.parseColor(resultScreenCustomizationOptions.getString("activityIndicatorColor"));
+            }
+            if (resultScreenCustomizationOptions.hasKey("uploadProgressFillColor")) {
+                resultScreenCustomization.uploadProgressFillColor = Color.parseColor(resultScreenCustomizationOptions.getString("uploadProgressFillColor"));
+            }
+            if (resultScreenCustomizationOptions.hasKey("uploadProgressTrackColor")) {
+                resultScreenCustomization.uploadProgressTrackColor = Color.parseColor(resultScreenCustomizationOptions.getString("uploadProgressTrackColor"));
+            }
+            if (resultScreenCustomizationOptions.hasKey("resultAnimationBackgroundColor")) {
+                resultScreenCustomization.resultAnimationBackgroundColor = Color.parseColor(resultScreenCustomizationOptions.getString("resultAnimationBackgroundColor"));
+            }
+            if (resultScreenCustomizationOptions.hasKey("resultAnimationForegroundColor")) {
+                resultScreenCustomization.resultAnimationForegroundColor = Color.parseColor(resultScreenCustomizationOptions.getString("resultAnimationForegroundColor"));
+            }
+
+            currentCustomization.setResultScreenCustomization(resultScreenCustomization);
+            Log.d(TAG, "Result Screen customizations applied.");
+        }
+    }
+
+    private void addOverlayCustomization(ZoomCustomization currentCustomization, ReadableMap opts) {
+        if (!opts.isNull("overlayCustomization")) {
+            ZoomOverlayCustomization overlayCustomization = new ZoomOverlayCustomization();
+            ReadableMap overlayCustomizationOptions = opts.getMap("overlayCustomization");
+
+            if (overlayCustomizationOptions.hasKey("brandingImage")) {
+                overlayCustomization.brandingImage = overlayCustomizationOptions.getInt("brandingImage");
+                overlayCustomization.showBrandingImage = false;
+            }
+
+            currentCustomization.setOverlayCustomization(overlayCustomization);
+            Log.d(TAG, "Oval customizations applied.");
+        }
     }
 
     // private void enroll(JSONArray args, final CallbackContext callbackContext) throws JSONException {
