@@ -3,6 +3,9 @@ package ZoomProcessors;
 //import com.facetec.zoom.sampleapp.BuildConfig;
 import com.facetec.zoom.sdk.ZoomCustomization;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ZoomGlobalState {
     // Replace string below with your license key from https://dev.zoomlogin.com/zoomsdk/#/account
 //    public static String DeviceLicenseKeyIdentifier = BuildConfig.ZOOM_LICENSE_KEY_IDENTIFIER;
@@ -11,6 +14,8 @@ public class ZoomGlobalState {
     // "http://localhost:8080" if running ZoOm Server SDK (Dockerized) locally.
     // Otherwise, your webservice URL.
     public static String ZoomServerBaseURL = "https://api.zoomauth.com/api/v2/biometrics";
+
+    public static Map<String, String> headers = new HashMap();
 
     // The customer-controlled public key used during encryption of FaceMap data.
     // Please see https://dev.zoomlogin.com/zoomsdk/#/licensing-and-encryption-keys for more information.

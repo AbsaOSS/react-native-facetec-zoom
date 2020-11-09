@@ -27,6 +27,7 @@ import com.facetec.zoom.sdk.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 
 import ZoomProcessors.LivenessCheckProcessor;
 import ZoomProcessors.Processor;
@@ -97,6 +98,18 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         Log.d(TAG, "initializing");
 
         licenseKey = opts.getString("licenseKey");
+
+        if (opts.hasKey("zoomServerBaseUrl")) {
+            ZoomGlobalState.ZoomServerBaseURL = opts.getString("zoomServerBaseUrl");
+        }
+
+        if (!opts.isNull("headers")) {
+            ReadableMap headers = opts.getMap("headers");
+
+            for (Map.Entry<String, Object> entry : headers.toHashMap().entrySet()) {
+               ZoomGlobalState.headers.put(entry.getKey(), entry.getValue().toString());
+            }
+        }
 
         final String facemapEncryptionKey = opts.hasKey("facemapEncryptionKey") ? opts.getString("facemapEncryptionKey") : ZoomGlobalState.PublicFaceMapEncryptionKey;
 

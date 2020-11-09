@@ -191,7 +191,15 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
                         resolver resolve: @escaping RCTPromiseResolveBlock,
                         rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
     self.licenseKey = options["licenseKey"] as? String
-
+    
+    if (options["zoomServerBaseUrl"] != nil) {
+        ZoomGlobalState.ZoomServerBaseURL = options["zoomServerBaseUrl"] as! String
+    }
+    
+    if (options["headers"] != nil) {
+        ZoomGlobalState.headers = options["headers"] as! [String: String]
+    }
+    
     if (options["facemapEncryptionKey"] != nil) {
       let publicKey = options["facemapEncryptionKey"] as! String
       Zoom.sdk.setFaceMapEncryptionKey(publicKey: publicKey);

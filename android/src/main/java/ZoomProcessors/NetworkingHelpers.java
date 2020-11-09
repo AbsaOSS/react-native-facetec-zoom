@@ -13,6 +13,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -197,13 +198,20 @@ public class NetworkingHelpers {
                     }
                 });
         // Do the network call and handle result
-        okhttp3.Request request = new okhttp3.Request.Builder()
+        okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder()
                 .header("Content-Type", "application/json")
                 .header("X-Device-License-Key", licenseKey)
                 .header("User-Agent", ZoomSDK.createZoomAPIUserAgentString(zoomSessionResult.getSessionId()))
                 .url(endpoint)
-                .post(progressRequestBody)
-                .build();
+                .post(progressRequestBody);
+        
+        if (!ZoomGlobalState.headers.isEmpty()) {
+            for (Map.Entry<String, String> entry : ZoomGlobalState.headers.entrySet()) {
+                requestBuilder.header(entry.getKey(), entry.getValue());
+            }
+        }
+
+        okhttp3.Request request = requestBuilder.build();
 
         getApiClient().newCall(request).enqueue(new Callback() {
             @Override

@@ -71,6 +71,13 @@ class NetworkingHelpers {
         let request = NSMutableURLRequest(url: NSURL(string: endpoint)! as URL)
         request.httpMethod = "POST"
         request.httpBody = try! JSONSerialization.data(withJSONObject: parameters, options: JSONSerialization.WritingOptions(rawValue: 0))
+        
+        if (!ZoomGlobalState.headers.isEmpty) {
+            for (key, value) in ZoomGlobalState.headers {
+                request.addValue(value, forHTTPHeaderField: key)
+            }
+        }
+
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         
         // Required parameters to interact with the FaceTec Managed Testing API.
