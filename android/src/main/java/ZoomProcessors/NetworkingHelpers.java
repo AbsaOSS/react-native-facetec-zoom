@@ -28,6 +28,7 @@ import com.facetec.zoom.sdk.*;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import java.util.concurrent.TimeUnit;
 
 // Possible directives after parsing the result from ZoOm Server.
 enum UXNextStep {
@@ -39,12 +40,16 @@ enum UXNextStep {
 public class NetworkingHelpers {
     private static OkHttpClient _apiClient = null;
     static OkHttpClient createApiClient() {
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+        clientBuilder.readTimeout(30, TimeUnit.SECONDS);
+        OkHttpClient client = clientBuilder.build();
 
         // Enabling support for TLSv1.1 and TLSv1.2 on Android 4.4 and below.
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             try {
                 client = new OkHttpClient.Builder()
+                        .connectTimeout(30, TimeUnit.SECONDS)
+                        .readTimeout(30, TimeUnit.SECONDS)
                         .sslSocketFactory(new TLSSocketFactory())
                         .build();
             } catch (KeyManagementException e) {
@@ -53,9 +58,11 @@ public class NetworkingHelpers {
                 e.printStackTrace();
             }
 
+            Log.d("ZoomSDK", "Http client read timeout in millis: " + client.readTimeoutMillis());
             return client;
         }
 
+        Log.d("ZoomSDK", "Http client read timeout in millis: " + client.readTimeoutMillis());
         return client;
     }
 
@@ -213,6 +220,7 @@ public class NetworkingHelpers {
 
         okhttp3.Request request = requestBuilder.build();
 
+        Log.d("ZoomSDK", "Sending request to Zoom server...");
         getApiClient().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -231,6 +239,7 @@ public class NetworkingHelpers {
                 response.body().close();
                 try {
                     JSONObject responseJSON = new JSONObject(responseString);
+                    Log.d("ZoomSDK", "Zoom server response. " + responseJSON.toString());
                     resultCallback.onResponse(responseJSON);
                 }
                 catch(JSONException e) {
