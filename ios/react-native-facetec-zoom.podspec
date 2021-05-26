@@ -9,11 +9,11 @@ Pod::Spec.new do |s|
   s.license       = package["license"]
   s.homepage      = "https://github.com/jakubkoci/react-native-facetec-zoom.git"
   s.authors       = package["author"]
-  s.source        = { :git => 'https://github.com/jakubkoci/react-native-facetec-zoom.git', :branch => 'fix/native-dependencies-sdk8' }
+  s.source        = { :git => 'https://github.com/petr-hlavnicka560/react-native-facetec-zoom.git', :branch => 'feature/sdk9' }
   s.source_files  = "**/*.{h,m,swift}"
   s.platform      = :ios, '7.0'
   s.dependency    'React'
-  s.dependency    'ZoomAuthentication'
+  s.dependency    'FaceTecSDK'
   s.swift_version = '4.2'
 
 end
