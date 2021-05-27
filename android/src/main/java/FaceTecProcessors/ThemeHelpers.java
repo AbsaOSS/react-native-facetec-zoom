@@ -31,7 +31,7 @@ public class ThemeHelpers {
             FaceTecGlobalState.currentCustomization.getGuidanceCustomization().buttonCornerRadius = 30;
             FaceTecGlobalState.currentCustomization.getGuidanceCustomization().readyScreenOvalFillColor = Color.parseColor("#4D09B5A3");
             FaceTecGlobalState.currentCustomization.getGuidanceCustomization().readyScreenTextBackgroundColor = backgroundColor;
-            FaceTecGlobalState.currentCustomization.getGuidanceCusto mization().readyScreenTextBackgroundCornerRadius = 5;
+            FaceTecGlobalState.currentCustomization.getGuidanceCustomization().readyScreenTextBackgroundCornerRadius = 5;
             // Guidance Image Customization
             // FaceTecGlobalState.currentCustomization.getGuidanceCustomization().getImageCustomization().cameraPermissionsScreenImage = R.drawable.camera_green;
             // ID Scan Customization
