@@ -77,7 +77,7 @@ public class NetworkingHelpers {
         try {
             parameters.put("faceMap", faceTecFaceMapBase64);
             parameters.put("sessionId", faceTecSessionResult.getSessionId());
-            if(faceTecSessionResult.getAuditTrailCompressedBase64().size() > 0) {
+            if(!faceTecSessionResult.getAuditTrailCompressedBase64()[0].isEmpty()) {
                 String compressedBase64AuditTrailImage = faceTecSessionResult.getAuditTrailCompressedBase64()[0];
                 parameters.put("auditTrailImage", compressedBase64AuditTrailImage);
             }

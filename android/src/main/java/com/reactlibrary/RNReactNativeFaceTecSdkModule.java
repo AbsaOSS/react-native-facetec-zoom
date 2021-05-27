@@ -51,7 +51,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
             if (verificationPromise == null) return;
 
             // Save results
-            FaceTecSessionResult result = FaceTecSessionActivity.getFaceTecSessionResultFromActivityResult(data);
+            FaceTecSessionResult result = FaceTecSessionActivity.getSessionResultFromActivityResult(data);
 
             WritableMap resultObj;
             try {
