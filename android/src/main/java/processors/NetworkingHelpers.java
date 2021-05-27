@@ -71,14 +71,14 @@ public class NetworkingHelpers {
 
     // Set up common parameters needed to communicate to the API.
     public static JSONObject getCommonParameters(FaceTecSessionResult faceTecSessionResult) {
-        String faceTecFaceMapBase64 = faceTecSessionResult.getFaceMetrics().getFaceMapBase64();
+        String faceTecFaceMapBase64 = faceTecSessionResult.getFaceScanBase64();
 
         JSONObject parameters = new JSONObject();
         try {
             parameters.put("faceMap", faceTecFaceMapBase64);
             parameters.put("sessionId", faceTecSessionResult.getSessionId());
-            if(faceTecSessionResult.getFaceMetrics().getAuditTrail().size() > 0) {
-                String compressedBase64AuditTrailImage = faceTecSessionResult.getFaceMetrics().getAuditTrailCompressedBase64()[0];
+            if(faceTecSessionResult.getAuditTrailCompressedBase64().size() > 0) {
+                String compressedBase64AuditTrailImage = faceTecSessionResult.getAuditTrailCompressedBase64()[0];
                 parameters.put("auditTrailImage", compressedBase64AuditTrailImage);
             }
         }
@@ -130,20 +130,20 @@ public class NetworkingHelpers {
 //    }
 
     // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
-    public static void getLivenessCheckResponseFromFaceTecServer(String licenseKey, FaceTecSessionResult faceTecSessionResult, FaceTecFaceMapResultCallback faceTecFaceMapResultCallback, FaceTecManagedAPICallback resultCallback ) {
+    public static void getLivenessCheckResponseFromFaceTecServer(String licenseKey, FaceTecSessionResult faceTecSessionResult, FaceTecFaceScanResultCallback faceTecFaceScanResultCallback, FaceTecManagedAPICallback resultCallback ) {
         JSONObject parameters = getCommonParameters(faceTecSessionResult);
         callToFaceTecServerForResult(
                 FaceTecGlobalState.FaceTecServerBaseURL + "/liveness",
                 parameters,
                 licenseKey,
                 faceTecSessionResult,
-                faceTecFaceMapResultCallback,
+                faceTecFaceScanResultCallback,
                 resultCallback
         );
     }
 
     // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
-//    public static void getEnrollmentResponseFromFaceTecServer( FaceTecSessionResult faceTecSessionResult, FaceTecFaceMapResultCallback faceTecFaceMapResultCallback, FaceTecManagedAPICallback resultCallback ) {
+//    public static void getEnrollmentResponseFromFaceTecServer( FaceTecSessionResult faceTecSessionResult, FaceTecFaceMapResultCallback faceTecFaceScanResultCallback, FaceTecManagedAPICallback resultCallback ) {
 //        JSONObject parameters = getCommonParameters(faceTecSessionResult);
 //        try {
 //            parameters.put("enrollmentIdentifier", FaceTecGlobalState.randomUsername);
@@ -155,19 +155,19 @@ public class NetworkingHelpers {
 //                FaceTecGlobalState.FaceTecServerBaseURL + "/enrollment",
 //                parameters,
 //                faceTecSessionResult,
-//                faceTecFaceMapResultCallback,
+//                faceTecFaceScanResultCallback,
 //                resultCallback
 //        );
 //    }
 //
 //    // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
-//    public static void getAuthenticateResponseFromFaceTecServer( FaceTecSessionResult faceTecSessionResult, FaceTecFaceMapResultCallback faceTecFaceMapResultCallback, FaceTecManagedAPICallback resultCallback ) {
+//    public static void getAuthenticateResponseFromFaceTecServer( FaceTecSessionResult faceTecSessionResult, FaceTecFaceMapResultCallback faceTecFaceScanResultCallback, FaceTecManagedAPICallback resultCallback ) {
 //        JSONObject parameters = getAuthenticateParameters(faceTecSessionResult);
 //        callToFaceTecServerForResult(
 //                FaceTecGlobalState.FaceTecServerBaseURL + "/match-3d-3d",
 //                parameters,
 //                faceTecSessionResult,
-//                faceTecFaceMapResultCallback,
+//                faceTecFaceScanResultCallback,
 //                resultCallback
 //        );
 //    }
@@ -194,14 +194,14 @@ public class NetworkingHelpers {
     // Makes the actual call to the API.
     // Note that for initial integration this sends to the FaceTec Managed Testing API.
     // After deployment of your own instance of ZoOm Server, this will be your own configurable endpoint.
-    private static void callToFaceTecServerForResult(String endpoint, JSONObject parameters, String licenseKey, FaceTecSessionResult faceTecSessionResult, final FaceTecFaceMapResultCallback faceTecFaceMapResultCallback, final FaceTecManagedAPICallback resultCallback)  {
+    private static void callToFaceTecServerForResult(String endpoint, JSONObject parameters, String licenseKey, FaceTecSessionResult faceTecSessionResult, final FaceTecFaceScanResultCallback faceTecFaceScanResultCallback, final FaceTecManagedAPICallback resultCallback)  {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), parameters.toString());
         ProgressRequestBody progressRequestBody = new ProgressRequestBody(requestBody,
                 new ProgressRequestBody.Listener() {
                     @Override
                     public void onUploadProgressChanged(long bytesWritten, long totalBytes) {
                         final float uploadProgressPercent = ((float)bytesWritten) / ((float)totalBytes);
-                        faceTecFaceMapResultCallback.uploadProgress(uploadProgressPercent);
+                        faceTecFaceScanResultCallback.uploadProgress(uploadProgressPercent);
                     }
                 });
         // Do the network call and handle result
@@ -229,7 +229,7 @@ public class NetworkingHelpers {
 
                 // If this comes from HTTPS cancel call, don't set the sub code to NETWORK_ERROR.
                 if(!e.getMessage().equals(OK_HTTP_RESPONSE_CANCELED)) {
-                    faceTecFaceMapResultCallback.cancel();
+                    faceTecFaceScanResultCallback.cancel();
                 }
             }
 
@@ -245,7 +245,7 @@ public class NetworkingHelpers {
                 catch(JSONException e) {
                     e.printStackTrace();
                     Log.d("FaceTecSDK", "Exception raised while attempting to parse JSON result.");
-                    faceTecFaceMapResultCallback.cancel();
+                    faceTecFaceScanResultCallback.cancel();
                 }
             }
         });
