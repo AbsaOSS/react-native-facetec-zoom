@@ -408,7 +408,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         String status = result.getStatus().name(); //convertFaceTecVerificationStatus(result.getStatus());
         resultObj.putString("status", status);
         resultObj.putBoolean("success", result.getStatus().equals(FaceTecSessionStatus.SESSION_COMPLETED_SUCCESSFULLY));
-        resultObj.putInt("countOfFaceTecSessionsPerformed", result.getCountOfFaceTecSessionsPerformed());
         resultObj.putString("sessionId", result.getSessionId());
 
         ArrayList<Bitmap> auditTrail = faceMetrics.getAuditTrail();
