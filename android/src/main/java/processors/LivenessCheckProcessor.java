@@ -1,14 +1,14 @@
 // Demonstrates performing a Liveness Check.
 
-package FaceTecProcessors;
+package processors;
 
 import android.content.Context;
 import org.json.JSONObject;
 
 import com.facetec.sdk.*;
 
-public class LivenessCheckProcessor extends Processor implements FaceTecFaceMapProcessor {
-    FaceTecFaceMapResultCallback faceTecFaceMapResultCallback;
+public class LivenessCheckProcessor extends Processor implements FaceTecFaceScanProcessor {
+    FaceTecFaceScanResultCallback faceTecFaceScanResultCallback;
     FaceTecSessionResult latestFaceTecSessionResult;
     private boolean _isSuccess = false;
     private final String licenseKey;
@@ -16,7 +16,7 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceMapP
     public LivenessCheckProcessor(Context context, String licenseKey) {
         // Launch the ZoOm Session.
         this.licenseKey = licenseKey;
-        FaceTecSessionActivity.createAndLaunchFaceTecSession(context, this);
+        FaceTecSessionActivity.createAndLaunchSession(context, this);
     }
 
     public boolean isSuccess() {
@@ -24,9 +24,9 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceMapP
     }
 
     // Required function that handles calling ZoOm Server to get result and decides how to continue.
-    public void processFaceTecSessionResultWhileFaceTecWaits(final FaceTecSessionResult faceTecSessionResult, final FaceTecFaceMapResultCallback faceTecFaceMapResultCallback) {
+    public void processSessionWhileFaceTecSDKWaits(final FaceTecSessionResult faceTecSessionResult, final FaceTecFaceScanResultCallback faceTecFaceScanResultCallback) {
         this.latestFaceTecSessionResult = faceTecSessionResult;
-        this.faceTecFaceMapResultCallback = faceTecFaceMapResultCallback;
+        this.faceTecFaceScanResultCallback = faceTecFaceScanResultCallback;
 
         // Cancel last request in flight.  This handles case where processing is is taking place but cancellation or Context Switch occurs.
         // Our handling here ends the latest in flight request and simply re-does the normal logic, which will cancel out.
@@ -34,13 +34,13 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceMapP
 
         // cancellation, timeout, etc.
         if (faceTecSessionResult.getStatus() != FaceTecSessionStatus.SESSION_COMPLETED_SUCCESSFULLY) {
-            faceTecFaceMapResultCallback.cancel();
-            this.faceTecFaceMapResultCallback = null;
+            faceTecFaceScanResultCallback.cancel();
+            this.faceTecFaceScanResultCallback = null;
             return;
         }
 
         // Create and parse request to ZoOm Server.
-        NetworkingHelpers.getLivenessCheckResponseFromFaceTecServer(licenseKey, faceTecSessionResult, this.faceTecFaceMapResultCallback, new FaceTecManagedAPICallback() {
+        NetworkingHelpers.getLivenessCheckResponseFromFaceTecServer(licenseKey, faceTecSessionResult, this.faceTecFaceScanResultCallback, new FaceTecManagedAPICallback() {
             @Override
             public void onResponse(JSONObject responseJSON) {
                 UXNextStep nextStep = ServerResultHelpers.getLivenessNextStep(responseJSON);
@@ -48,13 +48,13 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceMapP
                 if (nextStep == UXNextStep.Succeed) {
                     _isSuccess = true;
                     FaceTecCustomization.overrideResultScreenSuccessMessage = "Liveness\nConfirmed";
-                    faceTecFaceMapResultCallback.succeed();
+                    faceTecFaceScanResultCallback.succeed();
                 }
                 else if (nextStep == UXNextStep.Retry) {
-                    faceTecFaceMapResultCallback.retry();
+                    faceTecFaceScanResultCallback.retry();
                 }
                 else {
-                    faceTecFaceMapResultCallback.cancel();
+                    faceTecFaceScanResultCallback.cancel();
                 }
             }
         });

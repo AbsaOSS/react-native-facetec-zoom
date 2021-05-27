@@ -1,6 +1,6 @@
 // Demonstrates calling the FaceTec Managed Testing API and/or ZoOm Server
 
-package FaceTecProcessors;
+package processors;
 
 import android.os.Build;
 import android.util.Log;
@@ -211,7 +211,7 @@ public class NetworkingHelpers {
                 .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(faceTecSessionResult.getSessionId()))
                 .url(endpoint)
                 .post(progressRequestBody);
-        
+
         if (!FaceTecGlobalState.headers.isEmpty()) {
             for (Map.Entry<String, String> entry : FaceTecGlobalState.headers.entrySet()) {
                 requestBuilder.header(entry.getKey(), entry.getValue());

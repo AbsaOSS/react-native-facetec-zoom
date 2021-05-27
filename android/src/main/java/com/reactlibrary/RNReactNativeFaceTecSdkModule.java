@@ -29,9 +29,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
-import FaceTecProcessors.LivenessCheckProcessor;
-import FaceTecProcessors.Processor;
-import FaceTecProcessors.FaceTecGlobalState;
+import processors.LivenessCheckProcessor;
+import processors.Processor;
+import processors.FaceTecGlobalState;
 import io.tradle.reactimagestore.ImageStoreModule;
 
 public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {

@@ -1,4 +1,4 @@
-package FaceTecProcessors;
+package processors;
 
 //import com.facetec.zoom.sampleapp.BuildConfig;
 import com.facetec.sdk.FaceTecCustomization;
