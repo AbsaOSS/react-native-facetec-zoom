@@ -22,21 +22,21 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facetec.zoom.sdk.*;
+import com.facetec.sdk.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
-import ZoomProcessors.LivenessCheckProcessor;
-import ZoomProcessors.Processor;
-import ZoomProcessors.ZoomGlobalState;
+import FaceTecProcessors.LivenessCheckProcessor;
+import FaceTecProcessors.Processor;
+import FaceTecProcessors.FaceTecGlobalState;
 import io.tradle.reactimagestore.ImageStoreModule;
 
-public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
+public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
 
-    private static final String TAG = "RNReactNativeZoomSdk";
+    private static final String TAG = "RNReactNativeFaceTecSdk";
     private final ReactApplicationContext reactContext;
     private Promise verificationPromise;
     private boolean initialized;
@@ -47,15 +47,15 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         @Override
         public void onActivityResult(Activity activity, int requestCode, int resultCode, Intent data) {
             super.onActivityResult(activity, requestCode, resultCode, data);
-            if (requestCode != ZoomSDK.REQUEST_CODE_SESSION) return;
+            if (requestCode != FaceTecSDK.REQUEST_CODE_SESSION) return;
             if (verificationPromise == null) return;
 
             // Save results
-            ZoomSessionResult result = ZoomSessionActivity.getZoomSessionResultFromActivityResult(data);
+            FaceTecSessionResult result = FaceTecSessionActivity.getFaceTecSessionResultFromActivityResult(data);
 
             WritableMap resultObj;
             try {
-                resultObj = convertZoomVerificationResult(result);
+                resultObj = convertFaceTecVerificationResult(result);
             } catch (IOException i) {
                 resultObj = Arguments.createMap();
                 resultObj.putBoolean("success", false);
@@ -69,7 +69,7 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
     };
 
 
-    public RNReactNativeZoomSdkModule(ReactApplicationContext reactContext) {
+    public RNReactNativeFaceTecSdkModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
         this.verificationPromise = null;
@@ -79,18 +79,18 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
 
     @Override
     public String getName() {
-        return "RNReactNativeZoomSdk";
+        return "RNReactNativeFaceTecSdk";
     }
 
     @ReactMethod
     public void getVersion(final Promise promise) {
-        promise.resolve(ZoomSDK.version());
+        promise.resolve(FaceTecSDK.version());
     }
 
     @ReactMethod
     public void preload() {
         // preload sdk resources so the UI is snappy (optional)
-        ZoomSDK.preload(getCurrentActivity());
+        FaceTecSDK.preload(getCurrentActivity());
     }
 
     @ReactMethod
@@ -100,25 +100,25 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         licenseKey = opts.getString("licenseKey");
 
         if (opts.hasKey("zoomServerBaseUrl")) {
-            ZoomGlobalState.ZoomServerBaseURL = opts.getString("zoomServerBaseUrl");
+            FaceTecGlobalState.FaceTecServerBaseURL = opts.getString("zoomServerBaseUrl");
         }
 
         if (!opts.isNull("headers")) {
             ReadableMap headers = opts.getMap("headers");
 
             for (Map.Entry<String, Object> entry : headers.toHashMap().entrySet()) {
-               ZoomGlobalState.headers.put(entry.getKey(), entry.getValue().toString());
+               FaceTecGlobalState.headers.put(entry.getKey(), entry.getValue().toString());
             }
         }
 
-        final String facemapEncryptionKey = opts.hasKey("facemapEncryptionKey") ? opts.getString("facemapEncryptionKey") : ZoomGlobalState.PublicFaceMapEncryptionKey;
+        final String facemapEncryptionKey = opts.hasKey("facemapEncryptionKey") ? opts.getString("facemapEncryptionKey") : FaceTecGlobalState.PublicFaceMapEncryptionKey;
 
 
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
-                ZoomCustomization currentCustomization = new ZoomCustomization();
-                ZoomSDK.setAuditTrailType(ZoomAuditTrailType.HEIGHT_640);
+                FaceTecCustomization currentCustomization = new FaceTecCustomization();
+                FaceTecSDK.setAuditTrailType(FaceTecAuditTrailType.HEIGHT_640);
 //        currentCustomization.showPreEnrollmentScreen = opts.getBoolean("showPreEnrollmentScreen");
 //        currentCustomization.showUserLockedScreen = opts.getBoolean("showUserLockedScreen");
 //        currentCustomization.showRetryScreen= opts.getBoolean("showRetryScreen");
@@ -131,8 +131,8 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
                 addResultScreenCustomization(currentCustomization, opts);
                 addOverlayCustomization(currentCustomization, opts);
 
-                ZoomSDK.setCustomization(currentCustomization);
-                ZoomSDK.initialize(getCurrentActivity(), licenseKey, new ZoomSDK.InitializeCallback() {
+                FaceTecSDK.setCustomization(currentCustomization);
+                FaceTecSDK.initialize(getCurrentActivity(), licenseKey, new FaceTecSDK.InitializeCallback() {
                     @Override
                     public void onCompletion(boolean successful) {
                         WritableMap map = Arguments.createMap();
@@ -148,13 +148,13 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
                     }
                 });
 
-                ZoomSDK.setFaceMapEncryptionKey(facemapEncryptionKey);
+                FaceTecSDK.setFaceMapEncryptionKey(facemapEncryptionKey);
             }
         });
     }
 
-    private void addFrameCustomizations(ZoomCustomization currentCustomization, ReadableMap opts) {
-        ZoomFrameCustomization frameCustomization = new ZoomFrameCustomization();
+    private void addFrameCustomizations(FaceTecCustomization currentCustomization, ReadableMap opts) {
+        FaceTecFrameCustomization frameCustomization = new FaceTecFrameCustomization();
         frameCustomization.topMargin = opts.getInt("topMargin");
         frameCustomization.sizeRatio = (float)opts.getDouble("sizeRatio");
 
@@ -169,9 +169,9 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         currentCustomization.setFrameCustomization(frameCustomization);
     }
 
-    private void addFeedbackCustomizations(ZoomCustomization currentCustomization, ReadableMap opts) {
+    private void addFeedbackCustomizations(FaceTecCustomization currentCustomization, ReadableMap opts) {
         if (!opts.isNull("feedbackCustomization")) {
-            ZoomFeedbackCustomization feedbackCustomization = new ZoomFeedbackCustomization();
+            FaceTecFeedbackCustomization feedbackCustomization = new FaceTecFeedbackCustomization();
             ReadableMap feedbackCustomizationOptions = opts.getMap("feedbackCustomization");
 
             if (feedbackCustomizationOptions.hasKey("backgroundColor")) {
@@ -188,9 +188,9 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private void addOvalCustomizations(ZoomCustomization currentCustomization, ReadableMap opts) {
+    private void addOvalCustomizations(FaceTecCustomization currentCustomization, ReadableMap opts) {
         if (!opts.isNull("ovalCustomization")) {
-            ZoomOvalCustomization ovalCustomization = new ZoomOvalCustomization();
+            FaceTecOvalCustomization ovalCustomization = new FaceTecOvalCustomization();
             ReadableMap ovalCustomizationOptions = opts.getMap("ovalCustomization");
             if (ovalCustomizationOptions.hasKey("strokeColor")) {
                 ovalCustomization.strokeColor = Color.parseColor(ovalCustomizationOptions.getString("strokeColor"));
@@ -207,9 +207,9 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
     }
 
 
-    private void addGuidanceCustomizations(ZoomCustomization currentCustomization, ReadableMap opts) {
+    private void addGuidanceCustomizations(FaceTecCustomization currentCustomization, ReadableMap opts) {
         if (!opts.isNull("guidanceCustomization")) {
-            ZoomGuidanceCustomization guidanceCustomization = new ZoomGuidanceCustomization();
+            FaceTecGuidanceCustomization guidanceCustomization = new FaceTecGuidanceCustomization();
             ReadableMap guidanceCustomizationOptions = opts.getMap("guidanceCustomization");
 
             if (guidanceCustomizationOptions.hasKey("foregroundColor")) {
@@ -245,9 +245,9 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private void addResultScreenCustomization(ZoomCustomization currentCustomization, ReadableMap opts) {
+    private void addResultScreenCustomization(FaceTecCustomization currentCustomization, ReadableMap opts) {
         if (!opts.isNull("resultScreenCustomization")) {
-            ZoomResultScreenCustomization resultScreenCustomization = new ZoomResultScreenCustomization();
+            FaceTecResultScreenCustomization resultScreenCustomization = new FaceTecResultScreenCustomization();
             ReadableMap resultScreenCustomizationOptions = opts.getMap("resultScreenCustomization");
 
             if (resultScreenCustomizationOptions.hasKey("foregroundColor")) {
@@ -274,9 +274,9 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
         }
     }
 
-    private void addOverlayCustomization(ZoomCustomization currentCustomization, ReadableMap opts) {
+    private void addOverlayCustomization(FaceTecCustomization currentCustomization, ReadableMap opts) {
         if (!opts.isNull("overlayCustomization")) {
-            ZoomOverlayCustomization overlayCustomization = new ZoomOverlayCustomization();
+            FaceTecOverlayCustomization overlayCustomization = new FaceTecOverlayCustomization();
             ReadableMap overlayCustomizationOptions = opts.getMap("overlayCustomization");
 
             if (overlayCustomizationOptions.hasKey("brandingImage")) {
@@ -293,26 +293,26 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
     //     String userId = args.getString(0);
     //     String secret = args.getString(1);
 
-    //     Intent enrollmentIntent = new Intent(this.cordova.getActivity(), ZoomEnrollmentActivity.class);
-    //     enrollmentIntent.putExtra(ZoomSDK.EXTRA_ENROLLMENT_USER_ID, userId);
-    //     enrollmentIntent.putExtra(ZoomSDK.EXTRA_USER_ENCRYPTION_SECRET, secret);
+    //     Intent enrollmentIntent = new Intent(this.cordova.getActivity(), FaceTecEnrollmentActivity.class);
+    //     enrollmentIntent.putExtra(FaceTecSDK.EXTRA_ENROLLMENT_USER_ID, userId);
+    //     enrollmentIntent.putExtra(FaceTecSDK.EXTRA_USER_ENCRYPTION_SECRET, secret);
 
     //     pendingCallbackContext = callbackContext;
 
-    //     this.cordova.startActivityForResult(this, enrollmentIntent, ZoomSDK.REQUEST_CODE_ENROLLMENT);
+    //     this.cordova.startActivityForResult(this, enrollmentIntent, FaceTecSDK.REQUEST_CODE_ENROLLMENT);
     // }
 
     // private void authenticate(JSONArray args, final CallbackContext callbackContext) throws JSONException {
     //     String userId = args.getString(0);
     //     String secret = args.getString(1);
 
-    //     Intent authenticationIntent = new Intent(this.cordova.getActivity(), ZoomAuthenticationActivity.class);
-    //     authenticationIntent.putExtra(ZoomSDK.EXTRA_AUTHENTICATION_USER_ID, userId);
-    //     authenticationIntent.putExtra(ZoomSDK.EXTRA_USER_ENCRYPTION_SECRET, secret);
+    //     Intent authenticationIntent = new Intent(this.cordova.getActivity(), FaceTecAuthenticationActivity.class);
+    //     authenticationIntent.putExtra(FaceTecSDK.EXTRA_AUTHENTICATION_USER_ID, userId);
+    //     authenticationIntent.putExtra(FaceTecSDK.EXTRA_USER_ENCRYPTION_SECRET, secret);
 
     //     pendingCallbackContext = callbackContext;
 
-    //     this.cordova.startActivityForResult(this, authenticationIntent, ZoomSDK.REQUEST_CODE_AUTHENTICATION);
+    //     this.cordova.startActivityForResult(this, authenticationIntent, FaceTecSDK.REQUEST_CODE_AUTHENTICATION);
     // }
 
     @ReactMethod
@@ -329,12 +329,12 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
     }
 
 //  @ReactMethod
-//  public void handleVerificationSuccessResult(ZoomVerificationResult successResult) {
+//  public void handleVerificationSuccessResult(FaceTecVerificationResult successResult) {
 //    // retrieve the ZoOm facemap as byte[]
 //    if (successResult.getFaceMetrics() != null) {
 //      // this is the raw biometric data which can be uploaded, or may be
 //      // base64 encoded in order to handle easier at the cost of processing and network usage
-//      byte[] zoomFacemap = successResult.getFaceMetrics().getZoomFacemap();
+//      byte[] zoomFacemap = successResult.getFaceMetrics().getFaceTecFacemap();
 //      // handle facemap
 //    }
 //  }
@@ -346,7 +346,7 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
     //     cordova.getThreadPool().execute(new Runnable() {
     //         @Override
     //         public void run() {
-    //             ZoomSDK.UserEnrollmentStatus status = ZoomSDK.getUserEnrollmentStatus(context, userId);
+    //             FaceTecSDK.UserEnrollmentStatus status = FaceTecSDK.getUserEnrollmentStatus(context, userId);
     //             switch (status) {
     //                 case USER_ENROLLED:
     //                     callbackContext.success("Enrolled");
@@ -368,7 +368,7 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
 
 //    @NonNull
     private String getSdkStatusString() {
-        ZoomSDKStatus status = ZoomSDK.getStatus(reactContext.getApplicationContext());
+        FaceTecSDKStatus status = FaceTecSDK.getStatus(reactContext.getApplicationContext());
         return status.name();
 
 //    switch (status) {
@@ -399,16 +399,16 @@ public class RNReactNativeZoomSdkModule extends ReactContextBaseJavaModule {
 //    }
     }
 
-    private WritableMap convertZoomVerificationResult(ZoomSessionResult result) throws IOException {
+    private WritableMap convertFaceTecVerificationResult(FaceTecSessionResult result) throws IOException {
         WritableMap resultObj = Arguments.createMap();
         WritableMap faceMetricsObj = Arguments.createMap();
 
-        ZoomFaceBiometricMetrics faceMetrics = result.getFaceMetrics();
+        FaceTecFaceBiometricMetrics faceMetrics = result.getFaceMetrics();
 
-        String status = result.getStatus().name(); //convertZoomVerificationStatus(result.getStatus());
+        String status = result.getStatus().name(); //convertFaceTecVerificationStatus(result.getStatus());
         resultObj.putString("status", status);
-        resultObj.putBoolean("success", result.getStatus().equals(ZoomSessionStatus.SESSION_COMPLETED_SUCCESSFULLY));
-        resultObj.putInt("countOfZoomSessionsPerformed", result.getCountOfZoomSessionsPerformed());
+        resultObj.putBoolean("success", result.getStatus().equals(FaceTecSessionStatus.SESSION_COMPLETED_SUCCESSFULLY));
+        resultObj.putInt("countOfFaceTecSessionsPerformed", result.getCountOfFaceTecSessionsPerformed());
         resultObj.putString("sessionId", result.getSessionId());
 
         ArrayList<Bitmap> auditTrail = faceMetrics.getAuditTrail();

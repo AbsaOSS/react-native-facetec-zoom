@@ -1,6 +1,6 @@
 // Demonstrates calling the FaceTec Managed Testing API and/or ZoOm Server
 
-package ZoomProcessors;
+package FaceTecProcessors;
 
 import android.os.Build;
 import android.util.Log;
@@ -23,7 +23,7 @@ import okhttp3.RequestBody;
 import okio.BufferedSink;
 import okio.Okio;
 
-import com.facetec.zoom.sdk.*;
+import com.facetec.sdk.*;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
@@ -58,128 +58,128 @@ public class NetworkingHelpers {
                 e.printStackTrace();
             }
 
-            Log.d("ZoomSDK", "Http client read timeout in millis: " + client.readTimeoutMillis());
+            Log.d("FaceTecSDK", "Http client read timeout in millis: " + client.readTimeoutMillis());
             return client;
         }
 
-        Log.d("ZoomSDK", "Http client read timeout in millis: " + client.readTimeoutMillis());
+        Log.d("FaceTecSDK", "Http client read timeout in millis: " + client.readTimeoutMillis());
         return client;
     }
 
-    static String OK_HTTP_BUILDER_TAG = "zoomAPIRequest";
+    static String OK_HTTP_BUILDER_TAG = "faceTecAPIRequest";
     static String OK_HTTP_RESPONSE_CANCELED = "Canceled";
 
     // Set up common parameters needed to communicate to the API.
-    public static JSONObject getCommonParameters(ZoomSessionResult zoomSessionResult) {
-        String zoomFaceMapBase64 = zoomSessionResult.getFaceMetrics().getFaceMapBase64();
+    public static JSONObject getCommonParameters(FaceTecSessionResult faceTecSessionResult) {
+        String faceTecFaceMapBase64 = faceTecSessionResult.getFaceMetrics().getFaceMapBase64();
 
         JSONObject parameters = new JSONObject();
         try {
-            parameters.put("faceMap", zoomFaceMapBase64);
-            parameters.put("sessionId", zoomSessionResult.getSessionId());
-            if(zoomSessionResult.getFaceMetrics().getAuditTrail().size() > 0) {
-                String compressedBase64AuditTrailImage = zoomSessionResult.getFaceMetrics().getAuditTrailCompressedBase64()[0];
+            parameters.put("faceMap", faceTecFaceMapBase64);
+            parameters.put("sessionId", faceTecSessionResult.getSessionId());
+            if(faceTecSessionResult.getFaceMetrics().getAuditTrail().size() > 0) {
+                String compressedBase64AuditTrailImage = faceTecSessionResult.getFaceMetrics().getAuditTrailCompressedBase64()[0];
                 parameters.put("auditTrailImage", compressedBase64AuditTrailImage);
             }
         }
         catch(JSONException e) {
             e.printStackTrace();
-            Log.d("ZoomSDK", "Exception raised while attempting to create JSON payload for upload.");
+            Log.d("FaceTecSDK", "Exception raised while attempting to create JSON payload for upload.");
         }
         return parameters;
     }
 
 //    // Set up parameters needed to communicate to the API for Liveness + Matching (Authenticate).
-//    public static JSONObject getAuthenticateParameters(ZoomSessionResult zoomSessionResult) {
-//        String zoomFaceMapBase64 = zoomSessionResult.getFaceMetrics().getFaceMapBase64();
+//    public static JSONObject getAuthenticateParameters(FaceTecSessionResult faceTecSessionResult) {
+//        String faceTecFaceMapBase64 = faceTecSessionResult.getFaceMetrics().getFaceMapBase64();
 //
 //        JSONObject parameters = new JSONObject();
 //        JSONObject sourceObject = new JSONObject();
 //        JSONObject targetObject = new JSONObject();
 //
 //        try {
-//            targetObject.put("faceMap", zoomFaceMapBase64);
-//            sourceObject.put("enrollmentIdentifier", ZoomGlobalState.randomUsername);
+//            targetObject.put("faceMap", faceTecFaceMapBase64);
+//            sourceObject.put("enrollmentIdentifier", FaceTecGlobalState.randomUsername);
 //            parameters.put("performContinuousLearning", true);
 //            parameters.put("target", targetObject);
 //            parameters.put("source", sourceObject);
-//            parameters.put("sessionId", zoomSessionResult.getSessionId());
+//            parameters.put("sessionId", faceTecSessionResult.getSessionId());
 //        }
 //        catch(JSONException e) {
 //            e.printStackTrace();
-//            Log.d("ZoomSDK", "Exception raised while attempting to create JSON payload for upload.");
+//            Log.d("FaceTecSDK", "Exception raised while attempting to create JSON payload for upload.");
 //        }
 //        return parameters;
 //    }
 //
 //    // Set up parameters needed to communicate to the API for Photo ID Match.
-//    public static JSONObject getPhotoIDParameters(ZoomIDScanResult zoomIDScanResult) {
-//        String zoomIDScanBase64 = zoomIDScanResult.getIDScanMetrics().getIDScanBase64();
-//        String sessionId = zoomIDScanResult.getIDScanMetrics().getSessionId();
+//    public static JSONObject getPhotoIDParameters(FaceTecIDScanResult faceTecIDScanResult) {
+//        String faceTecIDScanBase64 = faceTecIDScanResult.getIDScanMetrics().getIDScanBase64();
+//        String sessionId = faceTecIDScanResult.getIDScanMetrics().getSessionId();
 //        JSONObject parameters = new JSONObject();
 //        try {
-//            parameters.put("enrollmentIdentifier", ZoomGlobalState.randomUsername);
-//            parameters.put("idScan", zoomIDScanBase64);
+//            parameters.put("enrollmentIdentifier", FaceTecGlobalState.randomUsername);
+//            parameters.put("idScan", faceTecIDScanBase64);
 //            parameters.put("sessionId", sessionId);
 //        }
 //        catch(JSONException e) {
 //            e.printStackTrace();
-//            Log.d("ZoomSDK", "Exception raised while attempting to create JSON payload for upload.");
+//            Log.d("FaceTecSDK", "Exception raised while attempting to create JSON payload for upload.");
 //        }
 //        return parameters;
 //    }
 
     // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
-    public static void getLivenessCheckResponseFromZoomServer(String licenseKey, ZoomSessionResult zoomSessionResult, ZoomFaceMapResultCallback zoomFaceMapResultCallback, FaceTecManagedAPICallback resultCallback ) {
-        JSONObject parameters = getCommonParameters(zoomSessionResult);
-        callToZoomServerForResult(
-                ZoomGlobalState.ZoomServerBaseURL + "/liveness",
+    public static void getLivenessCheckResponseFromFaceTecServer(String licenseKey, FaceTecSessionResult faceTecSessionResult, FaceTecFaceMapResultCallback faceTecFaceMapResultCallback, FaceTecManagedAPICallback resultCallback ) {
+        JSONObject parameters = getCommonParameters(faceTecSessionResult);
+        callToFaceTecServerForResult(
+                FaceTecGlobalState.FaceTecServerBaseURL + "/liveness",
                 parameters,
                 licenseKey,
-                zoomSessionResult,
-                zoomFaceMapResultCallback,
+                faceTecSessionResult,
+                faceTecFaceMapResultCallback,
                 resultCallback
         );
     }
 
     // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
-//    public static void getEnrollmentResponseFromZoomServer( ZoomSessionResult zoomSessionResult, ZoomFaceMapResultCallback zoomFaceMapResultCallback, FaceTecManagedAPICallback resultCallback ) {
-//        JSONObject parameters = getCommonParameters(zoomSessionResult);
+//    public static void getEnrollmentResponseFromFaceTecServer( FaceTecSessionResult faceTecSessionResult, FaceTecFaceMapResultCallback faceTecFaceMapResultCallback, FaceTecManagedAPICallback resultCallback ) {
+//        JSONObject parameters = getCommonParameters(faceTecSessionResult);
 //        try {
-//            parameters.put("enrollmentIdentifier", ZoomGlobalState.randomUsername);
+//            parameters.put("enrollmentIdentifier", FaceTecGlobalState.randomUsername);
 //        }
 //        catch(JSONException e) {
 //            e.printStackTrace();
 //        }
-//        callToZoomServerForResult(
-//                ZoomGlobalState.ZoomServerBaseURL + "/enrollment",
+//        callToFaceTecServerForResult(
+//                FaceTecGlobalState.FaceTecServerBaseURL + "/enrollment",
 //                parameters,
-//                zoomSessionResult,
-//                zoomFaceMapResultCallback,
+//                faceTecSessionResult,
+//                faceTecFaceMapResultCallback,
 //                resultCallback
 //        );
 //    }
 //
 //    // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
-//    public static void getAuthenticateResponseFromZoomServer( ZoomSessionResult zoomSessionResult, ZoomFaceMapResultCallback zoomFaceMapResultCallback, FaceTecManagedAPICallback resultCallback ) {
-//        JSONObject parameters = getAuthenticateParameters(zoomSessionResult);
-//        callToZoomServerForResult(
-//                ZoomGlobalState.ZoomServerBaseURL + "/match-3d-3d",
+//    public static void getAuthenticateResponseFromFaceTecServer( FaceTecSessionResult faceTecSessionResult, FaceTecFaceMapResultCallback faceTecFaceMapResultCallback, FaceTecManagedAPICallback resultCallback ) {
+//        JSONObject parameters = getAuthenticateParameters(faceTecSessionResult);
+//        callToFaceTecServerForResult(
+//                FaceTecGlobalState.FaceTecServerBaseURL + "/match-3d-3d",
 //                parameters,
-//                zoomSessionResult,
-//                zoomFaceMapResultCallback,
+//                faceTecSessionResult,
+//                faceTecFaceMapResultCallback,
 //                resultCallback
 //        );
 //    }
 //
 //    // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
-//    public static void getPhotoIDMatchResponseFromZoomServer(ZoomIDScanResult zoomIDScanResult, ZoomIDScanResultCallback zoomIDScanResultCallback, FaceTecManagedAPICallback resultCallback ){
-//        JSONObject parameters = getPhotoIDParameters(zoomIDScanResult);
+//    public static void getPhotoIDMatchResponseFromFaceTecServer(FaceTecIDScanResult faceTecIDScanResult, FaceTecIDScanResultCallback faceTecIDScanResultCallback, FaceTecManagedAPICallback resultCallback ){
+//        JSONObject parameters = getPhotoIDParameters(faceTecIDScanResult);
 //        callFaceTecManagedAPIForIDCheck(
-//                ZoomGlobalState.ZoomServerBaseURL + "/id-check",
+//                FaceTecGlobalState.FaceTecServerBaseURL + "/id-check",
 //                parameters,
-//                zoomIDScanResult,
-//                zoomIDScanResultCallback,
+//                faceTecIDScanResult,
+//                faceTecIDScanResultCallback,
 //                resultCallback
 //        );
 //    }
@@ -194,42 +194,42 @@ public class NetworkingHelpers {
     // Makes the actual call to the API.
     // Note that for initial integration this sends to the FaceTec Managed Testing API.
     // After deployment of your own instance of ZoOm Server, this will be your own configurable endpoint.
-    private static void callToZoomServerForResult(String endpoint, JSONObject parameters, String licenseKey, ZoomSessionResult zoomSessionResult, final ZoomFaceMapResultCallback zoomFaceMapResultCallback, final FaceTecManagedAPICallback resultCallback)  {
+    private static void callToFaceTecServerForResult(String endpoint, JSONObject parameters, String licenseKey, FaceTecSessionResult faceTecSessionResult, final FaceTecFaceMapResultCallback faceTecFaceMapResultCallback, final FaceTecManagedAPICallback resultCallback)  {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), parameters.toString());
         ProgressRequestBody progressRequestBody = new ProgressRequestBody(requestBody,
                 new ProgressRequestBody.Listener() {
                     @Override
                     public void onUploadProgressChanged(long bytesWritten, long totalBytes) {
                         final float uploadProgressPercent = ((float)bytesWritten) / ((float)totalBytes);
-                        zoomFaceMapResultCallback.uploadProgress(uploadProgressPercent);
+                        faceTecFaceMapResultCallback.uploadProgress(uploadProgressPercent);
                     }
                 });
         // Do the network call and handle result
         okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder()
                 .header("Content-Type", "application/json")
                 .header("X-Device-License-Key", licenseKey)
-                .header("User-Agent", ZoomSDK.createZoomAPIUserAgentString(zoomSessionResult.getSessionId()))
+                .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(faceTecSessionResult.getSessionId()))
                 .url(endpoint)
                 .post(progressRequestBody);
         
-        if (!ZoomGlobalState.headers.isEmpty()) {
-            for (Map.Entry<String, String> entry : ZoomGlobalState.headers.entrySet()) {
+        if (!FaceTecGlobalState.headers.isEmpty()) {
+            for (Map.Entry<String, String> entry : FaceTecGlobalState.headers.entrySet()) {
                 requestBuilder.header(entry.getKey(), entry.getValue());
             }
         }
 
         okhttp3.Request request = requestBuilder.build();
 
-        Log.d("ZoomSDK", "Sending request to Zoom server...");
+        Log.d("FaceTecSDK", "Sending request to FaceTec server...");
         getApiClient().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
-                Log.d("ZoomSDK", "Exception raised while attempting HTTPS call.");
+                Log.d("FaceTecSDK", "Exception raised while attempting HTTPS call.");
 
                 // If this comes from HTTPS cancel call, don't set the sub code to NETWORK_ERROR.
                 if(!e.getMessage().equals(OK_HTTP_RESPONSE_CANCELED)) {
-                    zoomFaceMapResultCallback.cancel();
+                    faceTecFaceMapResultCallback.cancel();
                 }
             }
 
@@ -239,13 +239,13 @@ public class NetworkingHelpers {
                 response.body().close();
                 try {
                     JSONObject responseJSON = new JSONObject(responseString);
-                    Log.d("ZoomSDK", "Zoom server response. " + responseJSON.toString());
+                    Log.d("FaceTecSDK", "FaceTec server response. " + responseJSON.toString());
                     resultCallback.onResponse(responseJSON);
                 }
                 catch(JSONException e) {
                     e.printStackTrace();
-                    Log.d("ZoomSDK", "Exception raised while attempting to parse JSON result.");
-                    zoomFaceMapResultCallback.cancel();
+                    Log.d("FaceTecSDK", "Exception raised while attempting to parse JSON result.");
+                    faceTecFaceMapResultCallback.cancel();
                 }
             }
         });
@@ -254,8 +254,8 @@ public class NetworkingHelpers {
     // Makes the actual call to the API.
     // Note that for initial integration this sends to the FaceTec Managed Testing API.
     // After deployment of your own instance of ZoOm Server, this will be your own configurable endpoint.
-//    private static void callFaceTecManagedAPIForIDCheck(String endpoint, JSONObject parameters, ZoomIDScanResult zoomIDScanResult, final ZoomIDScanResultCallback zoomIDScanResultCallback, final FaceTecManagedAPICallback resultCallback) {
-//        String sessionId = zoomIDScanResult.getIDScanMetrics().getSessionId();
+//    private static void callFaceTecManagedAPIForIDCheck(String endpoint, JSONObject parameters, FaceTecIDScanResult faceTecIDScanResult, final FaceTecIDScanResultCallback faceTecIDScanResultCallback, final FaceTecManagedAPICallback resultCallback) {
+//        String sessionId = faceTecIDScanResult.getIDScanMetrics().getSessionId();
 //
 //        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), parameters.toString());
 //        ProgressRequestBody progressRequestBody = new ProgressRequestBody(requestBody,
@@ -263,14 +263,14 @@ public class NetworkingHelpers {
 //                    @Override
 //                    public void onUploadProgressChanged(long bytesWritten, long totalBytes) {
 //                        final float uploadProgressPercent = ((float)bytesWritten) / ((float)totalBytes);
-//                        zoomIDScanResultCallback.uploadProgress(uploadProgressPercent);
+//                        faceTecIDScanResultCallback.uploadProgress(uploadProgressPercent);
 //                    }
 //                });
 //        // Do the network call and handle result
 //        okhttp3.Request request = new okhttp3.Request.Builder()
 //                .header("Content-Type", "application/json")
-//                .header("X-Device-License-Key", ZoomGlobalState.DeviceLicenseKeyIdentifier)
-//                .header("User-Agent", ZoomSDK.createZoomAPIUserAgentString(sessionId))
+//                .header("X-Device-License-Key", FaceTecGlobalState.DeviceLicenseKeyIdentifier)
+//                .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(sessionId))
 //                .url(endpoint)
 //                .post(progressRequestBody)
 //                .build();
@@ -279,11 +279,11 @@ public class NetworkingHelpers {
 //            @Override
 //            public void onFailure(Call call, IOException e) {
 //                e.printStackTrace();
-//                Log.d("ZoomSDK", "Exception raised while attempting HTTPS call.");
+//                Log.d("FaceTecSDK", "Exception raised while attempting HTTPS call.");
 //
 //                // If this comes from HTTPS cancel call, don't set the sub code to NETWORK_ERROR.
 //                if(!e.getMessage().equals(OK_HTTP_RESPONSE_CANCELED)) {
-//                    zoomIDScanResultCallback.cancel();
+//                    faceTecIDScanResultCallback.cancel();
 //                }
 //            }
 //
@@ -297,8 +297,8 @@ public class NetworkingHelpers {
 //                }
 //                catch(JSONException e) {
 //                    e.printStackTrace();
-//                    Log.d("ZoomSDK", "Exception raised while attempting to parse JSON result.");
-//                    zoomIDScanResultCallback.cancel();
+//                    Log.d("FaceTecSDK", "Exception raised while attempting to parse JSON result.");
+//                    faceTecIDScanResultCallback.cancel();
 //                }
 //            }
 //        });
@@ -483,7 +483,7 @@ class ServerResultHelpers {
         }
         catch(JSONException e) {
             e.printStackTrace();
-            Log.d("ZoomSDK", "Error while parsing JSON result.");
+            Log.d("FaceTecSDK", "Error while parsing JSON result.");
             return UXNextStep.Cancel;
         }
     }

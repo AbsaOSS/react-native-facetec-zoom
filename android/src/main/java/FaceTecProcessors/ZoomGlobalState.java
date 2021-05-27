@@ -1,19 +1,19 @@
-package ZoomProcessors;
+package FaceTecProcessors;
 
 //import com.facetec.zoom.sampleapp.BuildConfig;
-import com.facetec.zoom.sdk.ZoomCustomization;
+import com.facetec.sdk.FaceTecCustomization;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ZoomGlobalState {
+public class FaceTecGlobalState {
     // Replace string below with your license key from https://dev.zoomlogin.com/zoomsdk/#/account
 //    public static String DeviceLicenseKeyIdentifier = BuildConfig.ZOOM_LICENSE_KEY_IDENTIFIER;
 
     // "https://api.zoomauth.com/api/v2/biometrics" for FaceTec Managed Testing API.
     // "http://localhost:8080" if running ZoOm Server SDK (Dockerized) locally.
     // Otherwise, your webservice URL.
-    public static String ZoomServerBaseURL = "https://api.zoomauth.com/api/v2/biometrics";
+    public static String FaceTecServerBaseURL = "https://api.zoomauth.com/api/v2/biometrics";
 
     public static Map<String, String> headers = new HashMap();
 
@@ -35,5 +35,5 @@ public class ZoomGlobalState {
 //    public static boolean isRandomUsernameEnrolled = false;
 
     // This app can modify the customization to demonstrate different look/feel preferences for ZoOm.
-    public static ZoomCustomization currentCustomization = new ZoomCustomization();
+    public static FaceTecCustomization currentCustomization = new FaceTecCustomization();
 }
