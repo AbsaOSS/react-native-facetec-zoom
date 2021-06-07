@@ -141,16 +141,12 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                         promise.resolve(map);
                     }
                 });
-
-                FaceTecSDK.setFaceMapEncryptionKey(facemapEncryptionKey);
             }
         });
     }
 
     private void addFrameCustomizations(FaceTecCustomization currentCustomization, ReadableMap opts) {
         FaceTecFrameCustomization frameCustomization = new FaceTecFrameCustomization();
-        frameCustomization.topMargin = opts.getInt("topMargin");
-        frameCustomization.sizeRatio = (float)opts.getDouble("sizeRatio");
 
         if (opts.hasKey("backgroundColor")) {
             frameCustomization.backgroundColor = Color.parseColor(opts.getString("backgroundColor"));
