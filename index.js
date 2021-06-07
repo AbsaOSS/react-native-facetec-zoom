@@ -58,5 +58,5 @@ const wrapNative = native => {
   }
 }
 
-const zoomAuth = wrapNative(NativeModules.RNReactNativeZoomSdk)
-export default zoomAuth
+const faceTec = wrapNative(NativeModules.RNReactNativeFaceTecSdk)
+export default faceTec
