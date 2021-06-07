@@ -52,7 +52,6 @@ const wrapNative = native => {
   }
 
   return {
-    preload: native.preload,
     initialize,
     verify,
     getVersion,
