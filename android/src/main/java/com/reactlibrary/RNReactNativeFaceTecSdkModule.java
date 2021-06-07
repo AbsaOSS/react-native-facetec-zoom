@@ -397,40 +397,23 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         WritableMap resultObj = Arguments.createMap();
         WritableMap faceMetricsObj = Arguments.createMap();
 
-        FaceTecFaceBiometricMetrics faceMetrics = result.getFaceMetrics();
-
         String status = result.getStatus().name(); //convertFaceTecVerificationStatus(result.getStatus());
         resultObj.putString("status", status);
         resultObj.putBoolean("success", result.getStatus().equals(FaceTecSessionStatus.SESSION_COMPLETED_SUCCESSFULLY));
         resultObj.putString("sessionId", result.getSessionId());
 
-        ArrayList<Bitmap> auditTrail = faceMetrics.getAuditTrail();
-        byte[] facemap = faceMetrics.getFaceMap();
+        String[] auditTrail = result.getAuditTrailCompressedBase64();
+        byte[] facemap = result.getFaceScan();
         if (facemap == null || facemap.length == 0)
-            return resultObj;
+          return resultObj;
 
-        if (returnBase64) {
-            WritableArray auditTrailBase64 = Arguments.createArray();
-            for (Bitmap image : auditTrail) {
-                auditTrailBase64.pushString(bitmapToBase64(image, 90));
-            }
-
-            faceMetricsObj.putArray("auditTrail", auditTrailBase64);
-            faceMetricsObj.putString("facemap", bytesToBase64(facemap));
-            resultObj.putMap("faceMetrics", faceMetricsObj);
-            return resultObj;
+        WritableArray auditTrailBase64 = Arguments.createArray();
+        for (String s : auditTrail) {
+          auditTrailBase64.pushString(s);
         }
 
-        WritableArray auditTrailTags = Arguments.createArray();
-        for (Bitmap image : auditTrail) {
-            Uri imageUri = ImageStoreModule.storeImageBitmap(this.reactContext, image, "image/png");
-            auditTrailTags.pushString(imageUri.toString());
-        }
-
-        faceMetricsObj.putArray("auditTrail", auditTrailTags);
-        faceMetricsObj.putString("facemap", getImageTagForBytes(facemap));
-
-
+        faceMetricsObj.putArray("auditTrail", auditTrailBase64);
+        faceMetricsObj.putString("facemap", bytesToBase64(facemap));
         resultObj.putMap("faceMetrics", faceMetricsObj);
         return resultObj;
     }
