@@ -88,12 +88,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void preload() {
-        // preload sdk resources so the UI is snappy (optional)
-        FaceTecSDK.preload(getCurrentActivity());
-    }
-
-    @ReactMethod
     public void initialize(final ReadableMap opts, final Promise promise) {
         Log.d(TAG, "initializing");
 
@@ -132,7 +126,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                 addOverlayCustomization(currentCustomization, opts);
 
                 FaceTecSDK.setCustomization(currentCustomization);
-                FaceTecSDK.initialize(getCurrentActivity(), licenseKey, new FaceTecSDK.InitializeCallback() {
+                FaceTecSDK.initializeInDevelopmentMode(getCurrentActivity(), licenseKey, facemapEncryptionKey, new FaceTecSDK.InitializeCallback() {
                     @Override
                     public void onCompletion(boolean successful) {
                         WritableMap map = Arguments.createMap();
