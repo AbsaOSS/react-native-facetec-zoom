@@ -40,24 +40,24 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
         }
 
         // Create and parse request to ZoOm Server.
-        NetworkingHelpers.getLivenessCheckResponseFromFaceTecServer(licenseKey, faceTecSessionResult, this.faceTecFaceScanResultCallback, new FaceTecManagedAPICallback() {
-            @Override
-            public void onResponse(JSONObject responseJSON) {
-                UXNextStep nextStep = ServerResultHelpers.getLivenessNextStep(responseJSON);
-
-                if (nextStep == UXNextStep.Succeed) {
-                    _isSuccess = true;
-                    FaceTecCustomization.overrideResultScreenSuccessMessage = "Liveness\nConfirmed";
-                    faceTecFaceScanResultCallback.succeed();
-                }
-                else if (nextStep == UXNextStep.Retry) {
-                    faceTecFaceScanResultCallback.retry();
-                }
-                else {
-                    faceTecFaceScanResultCallback.cancel();
-                }
-            }
-        });
+//        NetworkingHelpers.getLivenessCheckResponseFromFaceTecServer(licenseKey, faceTecSessionResult, this.faceTecFaceScanResultCallback, new FaceTecManagedAPICallback() {
+//            @Override
+//            public void onResponse(JSONObject responseJSON) {
+//                UXNextStep nextStep = ServerResultHelpers.getLivenessNextStep(responseJSON);
+//
+//                if (nextStep == UXNextStep.Succeed) {
+//                    _isSuccess = true;
+//                    FaceTecCustomization.overrideResultScreenSuccessMessage = "Liveness\nConfirmed";
+//                    faceTecFaceScanResultCallback.succeed();
+//                }
+//                else if (nextStep == UXNextStep.Retry) {
+//                    faceTecFaceScanResultCallback.retry();
+//                }
+//                else {
+//                    faceTecFaceScanResultCallback.cancel();
+//                }
+//            }
+//        });
 
     }
 }

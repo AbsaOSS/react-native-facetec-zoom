@@ -24,12 +24,18 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facetec.sdk.*;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
+import okhttp3.Call;
+import okhttp3.Callback;
 import processors.LivenessCheckProcessor;
+import processors.NetworkingHelpers;
 import processors.Processor;
 import processors.FaceTecGlobalState;
 import io.tradle.reactimagestore.ImageStoreModule;
@@ -316,6 +322,58 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         returnBase64 = opts.getBoolean("returnBase64");
         Activity activity = getCurrentActivity();
         new LivenessCheckProcessor(activity, this.licenseKey);
+    }
+
+    interface SessionTokenCallback {
+        void onSessionTokenReceived(String sessionToken);
+    }
+
+    public void getSessionToken(ReadableMap opts, final SessionTokenCallback sessionTokenCallback) {
+//        utils.showSessionTokenConnectionText();
+
+        licenseKey = opts.getString("licenseKey");
+
+        // Do the network call and handle result
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .header("X-Device-Key", licenseKey)
+                .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(""))
+                .url(FaceTecGlobalState.FaceTecServerBaseURL + "/session-token")
+                .get()
+                .build();
+
+        NetworkingHelpers.getApiClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                Log.d("FaceTecSDKSampleApp", "Exception raised while attempting HTTPS call.");
+
+                // If this comes from HTTPS cancel call, don't set the sub code to NETWORK_ERROR.
+                if(!e.getMessage().equals(NetworkingHelpers.OK_HTTP_RESPONSE_CANCELED)) {
+//                    utils.handleErrorGettingServerSessionToken();
+                }
+            }
+
+            @Override
+            public void onResponse(Call call, okhttp3.Response response) throws IOException {
+                String responseString = response.body().string();
+                response.body().close();
+                try {
+                    JSONObject responseJSON = new JSONObject(responseString);
+                    if(responseJSON.has("sessionToken")) {
+//                        utils.hideSessionTokenConnectionText();
+                        sessionTokenCallback.onSessionTokenReceived(responseJSON.getString("sessionToken"));
+                    }
+                    else {
+//                        utils.handleErrorGettingServerSessionToken();
+                    }
+                }
+                catch(JSONException e) {
+                    e.printStackTrace();
+                    Log.d("FaceTecSDKSampleApp", "Exception raised while attempting to parse JSON result.");
+//                    utils.handleErrorGettingServerSessionToken();
+                }
+            }
+        });
     }
 
 //  @ReactMethod
