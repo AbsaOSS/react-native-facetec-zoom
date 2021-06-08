@@ -311,27 +311,42 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
     //     this.cordova.startActivityForResult(this, authenticationIntent, FaceTecSDK.REQUEST_CODE_AUTHENTICATION);
     // }
 
+//    @ReactMethod
+//    public void verify(ReadableMap opts, final Promise promise) {
+//        if (!initialized) {
+//            promise.reject(new RuntimeException("NotInitialized"));
+//            return;
+//        }
+//
+//        verificationPromise = promise;
+//        returnBase64 = opts.getBoolean("returnBase64");
+//        Activity activity = getCurrentActivity();
+//        new LivenessCheckProcessor(activity, this.licenseKey);
+//    }
+
     @ReactMethod
-    public void verify(ReadableMap opts, final Promise promise) {
+    public void verify(final ReadableMap opts, final Promise promise) {
         if (!initialized) {
             promise.reject(new RuntimeException("NotInitialized"));
             return;
         }
 
-        verificationPromise = promise;
-        returnBase64 = opts.getBoolean("returnBase64");
-        Activity activity = getCurrentActivity();
-        new LivenessCheckProcessor(activity, this.licenseKey);
+        final Activity activity = getCurrentActivity();
+
+        getSessionToken(new SessionTokenCallback() {
+            @Override
+            public void onSessionTokenReceived(String sessionToken) {
+                new LivenessCheckProcessor(licenseKey, sessionToken, activity);
+            }
+        });
     }
 
     interface SessionTokenCallback {
         void onSessionTokenReceived(String sessionToken);
     }
 
-    public void getSessionToken(ReadableMap opts, final SessionTokenCallback sessionTokenCallback) {
+    public void getSessionToken(final SessionTokenCallback sessionTokenCallback) {
 //        utils.showSessionTokenConnectionText();
-
-        licenseKey = opts.getString("licenseKey");
 
         // Do the network call and handle result
         okhttp3.Request request = new okhttp3.Request.Builder()
