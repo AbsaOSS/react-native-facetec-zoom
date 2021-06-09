@@ -100,7 +100,11 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         licenseKey = opts.getString("licenseKey");
 
         if (opts.hasKey("zoomServerBaseUrl")) {
-            FaceTecGlobalState.FaceTecServerBaseURL = opts.getString("zoomServerBaseUrl");
+            FaceTecGlobalState.FaceTecServerBaseURL = opts.getString("faceTecServerBaseURL");
+        }
+
+        if (opts.hasKey("faceTecServerBaseRootURL")) {
+            FaceTecGlobalState.FaceTecServerBaseRootURL = opts.getString("faceTecServerBaseRootURL");
         }
 
         if (!opts.isNull("headers")) {
@@ -352,7 +356,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .header("X-Device-Key", licenseKey)
                 .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(""))
-                .url(FaceTecGlobalState.FaceTecServerBaseURL + "/session-token")
+                .url(FaceTecGlobalState.FaceTecServerBaseRootURL + "/session-token")
                 .get()
                 .build();
 

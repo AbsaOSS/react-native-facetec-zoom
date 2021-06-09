@@ -14,6 +14,7 @@ public class FaceTecGlobalState {
     // "http://localhost:8080" if running ZoOm Server SDK (Dockerized) locally.
     // Otherwise, your webservice URL.
     public static String FaceTecServerBaseURL = "https://api.zoomauth.com/api/v2/biometrics";
+    public static String FaceTecServerBaseRootURL = "";
 
     public static Map<String, String> headers = new HashMap();
 

@@ -86,7 +86,7 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
         // Part 5:  Make the Networking Call to Your Servers.  Below is just example code, you are free to customize based on how your own API works.
         //
         okhttp3.Request request = new okhttp3.Request.Builder()
-                .url(FaceTecGlobalState.FaceTecServerBaseURL + "/liveness-3d")
+                .url(FaceTecGlobalState.FaceTecServerBaseRootURL + "/liveness-3d")
                 .header("Content-Type", "application/json")
                 .header("X-Device-Key", licenseKey)
                 .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(sessionResult.getSessionId()))
