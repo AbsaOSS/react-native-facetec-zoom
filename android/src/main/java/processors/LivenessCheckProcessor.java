@@ -43,13 +43,16 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
         // - FaceTecFaceScanProcessor:  A class that implements FaceTecFaceScanProcessor, which handles the FaceScan when the User completes a Session.  In this example, "self" implements the class.
         // - sessionToken:  A valid Session Token you just created by calling your API to get a Session Token from the Server SDK.
         //
+        System.out.println("======INSIDE  LivenessCheckProcessor, BEFORE calling createAndLaunchSession");
         FaceTecSessionActivity.createAndLaunchSession(context, LivenessCheckProcessor.this, sessionToken);
+        System.out.println("======INSIDE  LivenessCheckProcessor, AFTER calling createAndLaunchSession");
     }
 
     //
     // Part 2:  Handling the Result of a FaceScan
     //
     public void processSessionWhileFaceTecSDKWaits(final FaceTecSessionResult sessionResult, final FaceTecFaceScanResultCallback faceScanResultCallback) {
+        System.out.println("======INSIDE  START OF processSessionWhileFaceTecSDKWaits");
         //
         // DEVELOPER NOTE:  These properties are for demonstration purposes only so the Sample App can get information about what is happening in the processor.
         // In the code in your own App, you can pass around signals, flags, intermediates, and results however you would like.
@@ -60,10 +63,13 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
         // Part 3:  Handles early exit scenarios where there is no FaceScan to handle -- i.e. User Cancellation, Timeouts, etc.
         //
         if(sessionResult.getStatus() != FaceTecSessionStatus.SESSION_COMPLETED_SUCCESSFULLY) {
+            System.out.println("======Session NOT completed successfully");
             NetworkingHelpers.cancelPendingRequests();
             faceScanResultCallback.cancel();
             return;
         }
+
+        System.out.println("======Session completed successfully");
 
         // IMPORTANT:  FaceTecSDK.FaceTecSessionStatus.SessionCompletedSuccessfully DOES NOT mean the Liveness Check was Successful.
         // It simply means the User completed the Session and a 3D FaceScan was created.  You still need to perform the Liveness Check on your Servers.
@@ -85,8 +91,11 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
         //
         // Part 5:  Make the Networking Call to Your Servers.  Below is just example code, you are free to customize based on how your own API works.
         //
+
+        System.out.println("====== parameters: " + parameters);
+        System.out.println("====== parameters toString: " + parameters.toString());
         okhttp3.Request request = new okhttp3.Request.Builder()
-                .url(FaceTecGlobalState.FaceTecServerBaseRootURL + "/liveness-3d")
+                .url(FaceTecGlobalState.FaceTecServerBaseURL + "/liveness-3d")
                 .header("Content-Type", "application/json")
                 .header("X-Device-Key", licenseKey)
                 .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(sessionResult.getSessionId()))
@@ -104,9 +113,14 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
                         }))
                 .build();
 
+        System.out.println("====== URL: " + FaceTecGlobalState.FaceTecServerBaseURL + "/liveness-3d");
+        System.out.println("====== licenseKey: " + licenseKey);
+        System.out.println("====== User-Agent: " + FaceTecSDK.createFaceTecAPIUserAgentString(sessionResult.getSessionId()));
+
         //
         // Part 8:  Actually send the request.
         //
+        System.out.println("======BEFORE CALLING liveness-3d");
         NetworkingHelpers.getApiClient().newCall(request).enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull okhttp3.Response response) throws IOException {
@@ -118,6 +132,7 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
                 //
 
                 String responseString = response.body().string();
+                System.out.println("====== responseString: " + responseString);
                 response.body().close();
                 try {
                     JSONObject responseJSON = new JSONObject(responseString);
@@ -142,6 +157,7 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
                 }
                 catch(JSONException e) {
                     // CASE:  Parsing the response into JSON failed --> You define your own API contracts with yourself and may choose to do something different here based on the error.  Solid server-side code should ensure you don't get to this case.
+                    System.out.println("======INSIDE JSONException");
                     e.printStackTrace();
                     Log.d("FaceTecSDKSampleApp", "Exception raised while attempting to parse JSON result.");
                     faceScanResultCallback.cancel();

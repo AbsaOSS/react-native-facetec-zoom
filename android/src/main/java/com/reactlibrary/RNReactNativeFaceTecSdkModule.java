@@ -99,12 +99,9 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
 
         licenseKey = opts.getString("licenseKey");
 
-        if (opts.hasKey("zoomServerBaseUrl")) {
+        if (opts.hasKey("faceTecServerBaseURL")) {
+            System.out.println("======INSIDE  initialize faceTecServerBaseURL: " + opts.getString("faceTecServerBaseURL"));
             FaceTecGlobalState.FaceTecServerBaseURL = opts.getString("faceTecServerBaseURL");
-        }
-
-        if (opts.hasKey("faceTecServerBaseRootURL")) {
-            FaceTecGlobalState.FaceTecServerBaseRootURL = opts.getString("faceTecServerBaseRootURL");
         }
 
         if (!opts.isNull("headers")) {
@@ -340,6 +337,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         getSessionToken(new SessionTokenCallback() {
             @Override
             public void onSessionTokenReceived(String sessionToken) {
+                System.out.println("======INSIDE  onSessionTokenReceived, BEFORE calling LivenessCheckProcessor");
                 new LivenessCheckProcessor(licenseKey, sessionToken, activity);
             }
         });
@@ -356,9 +354,14 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .header("X-Device-Key", licenseKey)
                 .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(""))
-                .url(FaceTecGlobalState.FaceTecServerBaseRootURL + "/session-token")
+                .url(FaceTecGlobalState.FaceTecServerBaseURL + "/session-token")
                 .get()
                 .build();
+
+        System.out.println("====== licenseKey: " + licenseKey);
+        System.out.println("====== User-Agent: " + FaceTecSDK.createFaceTecAPIUserAgentString(""));
+        System.out.println("====== SessionToken URL: " + FaceTecGlobalState.FaceTecServerBaseURL + "/session-token");
+
 
         NetworkingHelpers.getApiClient().newCall(request).enqueue(new Callback() {
             @Override
@@ -375,14 +378,18 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
             @Override
             public void onResponse(Call call, okhttp3.Response response) throws IOException {
                 String responseString = response.body().string();
+                System.out.println("====== responseString: " + responseString);
                 response.body().close();
                 try {
                     JSONObject responseJSON = new JSONObject(responseString);
-                    if(responseJSON.has("sessionToken")) {
+                    if(responseJSON.has("data") && responseJSON.getJSONObject("data").has("sessionToken")) {
+                        System.out.println("======INSIDE  if(responseJSON.has(\"sessionToken\"))");
 //                        utils.hideSessionTokenConnectionText();
-                        sessionTokenCallback.onSessionTokenReceived(responseJSON.getString("sessionToken"));
+                        System.out.println("====== sessionToken: " + responseJSON.getJSONObject("data").getString("sessionToken"));
+                        sessionTokenCallback.onSessionTokenReceived(responseJSON.getJSONObject("data").getString("sessionToken"));
                     }
                     else {
+                        System.out.println("======INSIDE  ELSE OF if(responseJSON.has(\"sessionToken\"))");
 //                        utils.handleErrorGettingServerSessionToken();
                     }
                 }
