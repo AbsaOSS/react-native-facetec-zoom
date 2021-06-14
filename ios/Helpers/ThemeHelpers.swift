@@ -8,7 +8,7 @@
 
 import Foundation
 import UIKit
-import ZoomAuthentication
+import FaceTecSDK
 
 class ThemeHelpers {
 
@@ -24,7 +24,7 @@ class ThemeHelpers {
             backgroundLayer.locations = [0,1]
             backgroundLayer.startPoint = CGPoint.init(x: 0, y: 0)
             backgroundLayer.endPoint = CGPoint.init(x: 1, y: 0)
-            
+
             // Overlay Customization
             ZoomGlobalState.currentCustomization.overlayCustomization.blurEffectStyle = .styleLight
             ZoomGlobalState.currentCustomization.overlayCustomization.blurEffectOpacity = 0.8
@@ -101,7 +101,7 @@ class ThemeHelpers {
             backgroundLayer.locations = [0,1]
             backgroundLayer.startPoint = CGPoint.init(x: 0, y: 0)
             backgroundLayer.endPoint = CGPoint.init(x: 1, y: 0)
-            
+
             // Overlay Customization
             ZoomGlobalState.currentCustomization.overlayCustomization.blurEffectStyle = .off
             ZoomGlobalState.currentCustomization.overlayCustomization.blurEffectOpacity = 0
@@ -179,7 +179,7 @@ class ThemeHelpers {
             backgroundLayer.locations = [0,1]
             backgroundLayer.startPoint = CGPoint.init(x: 0, y: 0)
             backgroundLayer.endPoint = CGPoint.init(x: 1, y: 0)
-            
+
             // Overlay Customization
             ZoomGlobalState.currentCustomization.overlayCustomization.blurEffectStyle = .off
             ZoomGlobalState.currentCustomization.overlayCustomization.blurEffectOpacity = 0
@@ -257,7 +257,7 @@ class ThemeHelpers {
             backgroundLayer.locations = [0,1]
             backgroundLayer.startPoint = CGPoint.init(x: 0, y: 0)
             backgroundLayer.endPoint = CGPoint.init(x: 1, y: 0)
-            
+
             // Overlay Customization
             ZoomGlobalState.currentCustomization.overlayCustomization.blurEffectStyle = .off
             ZoomGlobalState.currentCustomization.overlayCustomization.blurEffectOpacity = 0
@@ -404,7 +404,7 @@ class ThemeHelpers {
             ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImage = UIImage(named: "cancel_white")
 //            ZoomGlobalState.currentCustomization.cancelButtonCustomization.customImageLowLight = UIImage(named: "cancel_navy")
         }
-        
+
         Zoom.sdk.setCustomization(ZoomGlobalState.currentCustomization)
     }
 }

@@ -1,6 +1,6 @@
 // Helpful interfaces and enums
 
-import ZoomAuthentication
+import FaceTecSDK
 
 protocol ProcessingDelegate: class {
     func onProcessingComplete(isSuccess: Bool, zoomSessionResult: ZoomSessionResult?)

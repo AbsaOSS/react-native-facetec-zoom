@@ -2,7 +2,7 @@
 
 import UIKit
 import Foundation
-import ZoomAuthentication
+import FaceTecSDK
 
 class LivenessCheckProcessor: NSObject, URLSessionDelegate, ZoomFaceMapProcessorDelegate, ZoomSessionDelegate {
     var licenseKey: String!
@@ -15,7 +15,7 @@ class LivenessCheckProcessor: NSObject, URLSessionDelegate, ZoomFaceMapProcessor
         self.isSuccess = false
 
         super.init()
-        
+
         self.licenseKey = options["licenseKey"] as? String
 
         // Launch the ZoOm Session.
@@ -23,10 +23,10 @@ class LivenessCheckProcessor: NSObject, URLSessionDelegate, ZoomFaceMapProcessor
         if (options["useOverlay"] as? Bool)! {
             sessionVC.modalPresentationStyle = .overCurrentContext
         }
-        
+
         fromVC.present(sessionVC, animated: true, completion: nil)
     }
-    
+
     // Required function that handles calling ZoOm Server to get result and decides how to continue.
     func processZoomSessionResultWhileZoomWaits(zoomSessionResult: ZoomSessionResult, zoomFaceMapResultCallback: ZoomFaceMapResultCallback) {
         self.latestZoomSessionResult = zoomSessionResult
@@ -35,7 +35,7 @@ class LivenessCheckProcessor: NSObject, URLSessionDelegate, ZoomFaceMapProcessor
             zoomFaceMapResultCallback.onFaceMapResultCancel();
             return
         }
-        
+
         // Create and parse request to ZoOm Server.
         NetworkingHelpers.getLivenessCheckResponseFromZoomServer(
             urlSessionDelegate: self,
@@ -57,12 +57,12 @@ class LivenessCheckProcessor: NSObject, URLSessionDelegate, ZoomFaceMapProcessor
             }
         )
     }
-    
+
     // iOS way to get upload progress and update ZoOm UI.
     func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
 //        let uploadProgress: Float = Float(totalBytesSent) / Float(totalBytesExpectedToSend)
     }
-    
+
     // The final callback ZoOm SDK calls when done with everything.
     func onZoomSessionComplete() {
         delegate.onProcessingComplete(isSuccess: isSuccess, zoomSessionResult: latestZoomSessionResult)

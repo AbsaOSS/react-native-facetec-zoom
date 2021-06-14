@@ -2,7 +2,7 @@
 
 import UIKit
 import Foundation
-import ZoomAuthentication
+import FaceTecSDK
 
 // Possible directives after parsing the result from ZoOm Server
 enum UXNextStep {
@@ -15,18 +15,18 @@ class NetworkingHelpers {
     // Set up common parameters needed to communicate to the API.
     class func getCommonParameters(zoomSessionResult: ZoomSessionResult) -> [String : Any] {
         let zoomFaceMapBase64 = zoomSessionResult.faceMetrics?.faceMapBase64;
-        
+
         var parameters: [String : Any] = [:]
         parameters["faceMap"] = zoomFaceMapBase64
         parameters["sessionId"] = zoomSessionResult.sessionId
-        
+
         if let auditTrail = zoomSessionResult.faceMetrics?.auditTrailCompressedBase64 {
             parameters["auditTrailImage"] = auditTrail[0]
         }
-        
+
         return parameters
     }
-    
+
 //    // Set up parameters needed to communicate to the API for Liveness + Matching (Authenticate).
 //    class func getAuthenticateParameters(zoomSessionResult: ZoomSessionResult) -> [String : Any] {
 //        let zoomFaceMapBase64 = zoomSessionResult.faceMetrics?.faceMapBase64;
@@ -43,7 +43,7 @@ class NetworkingHelpers {
 //
 //        return parameters
 //    }
-    
+
     // Set up parameters needed to communicate to the API for Photo ID Match.
 //    class func getPhotoIDMatchParameters(zoomIDScanResult: ZoomIDScanResult, sessionId: String) -> [String : Any] {
 //        let zoomIDScanBase64 = zoomIDScanResult.idScanMetrics?.idScanBase64;
@@ -55,7 +55,7 @@ class NetworkingHelpers {
 //
 //        return parameters
 //    }
-    
+
     // Makes the actual call to the API.
     // Note that for initial integration this sends to the FaceTec Managed Testing API.
     // After deployment of your own instance of ZoOm Server, this will be your own configurable endpoint.
@@ -71,7 +71,7 @@ class NetworkingHelpers {
         let request = NSMutableURLRequest(url: NSURL(string: endpoint)! as URL)
         request.httpMethod = "POST"
         request.httpBody = try! JSONSerialization.data(withJSONObject: parameters, options: JSONSerialization.WritingOptions(rawValue: 0))
-        
+
         if (!ZoomGlobalState.headers.isEmpty) {
             for (key, value) in ZoomGlobalState.headers {
                 request.addValue(value, forHTTPHeaderField: key)
@@ -79,12 +79,12 @@ class NetworkingHelpers {
         }
 
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         // Required parameters to interact with the FaceTec Managed Testing API.
 //        request.addValue(ZoomGlobalState.DeviceLicenseKeyIdentifier, forHTTPHeaderField: "X-Device-License-Key")
         request.addValue(licenseKey, forHTTPHeaderField: "X-Device-License-Key")
         request.addValue(Zoom.sdk.createZoomAPIUserAgentString(sessionId), forHTTPHeaderField: "User-Agent")
-        
+
         let session = URLSession(configuration: URLSessionConfiguration.default, delegate: urlSessionDelegate, delegateQueue: OperationQueue.main)
         let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
             // Ensure the data object is not nil otherwise callback with empty dictionary.
@@ -102,7 +102,7 @@ class NetworkingHelpers {
         })
         task.resume()
     }
-    
+
     // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
     public class func getLivenessCheckResponseFromZoomServer(
         urlSessionDelegate: URLSessionDelegate,
@@ -124,7 +124,7 @@ class NetworkingHelpers {
             }
         )
     }
-    
+
     // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
 //    public class func getEnrollmentResponseFromZoomServer(
 //        urlSessionDelegate: URLSessionDelegate,
@@ -167,7 +167,7 @@ class NetworkingHelpers {
 //            }
 //        )
 //    }
-    
+
     // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
 //    public class func getPhotoIDMatchResponseFromZoomServer(
 //        urlSessionDelegate: URLSessionDelegate,
@@ -206,7 +206,7 @@ class ServerResultHelpers {
             return .Cancel
         }
     }
-    
+
     // If isEnrolled and Liveness was Determined, succeed.  Otherwise retry.  Unexpected responses cancel.
 //    public class func getEnrollmentNextStep(responseJSONObj: [String: AnyObject]) -> UXNextStep {
 //        if (responseJSONObj["meta"] as? [String : Any])?["code"] as? Int == 200
@@ -224,7 +224,7 @@ class ServerResultHelpers {
 //            return .Cancel
 //        }
 //    }
-    
+
     // If isEnrolled and Liveness was Determined, succeed.  Otherwise retry.  Unexpected responses cancel.
 //    public class func getAuthenticateNextStep(responseJSONObj: [String: AnyObject]) -> UXNextStep {
 //        // if both FaceMaps have Liveness Proven, and Match Level is 10 (1 in 4.2 million), then succeed.  Otherwise retry.  Unexpected responses cancel.
@@ -245,7 +245,7 @@ class ServerResultHelpers {
 //            return .Cancel
 //        }
 //    }
-    
+
     // If Liveness was Determined and 3D FaceMap matches the ID Scan, succeed.  Otheriwse retry.  Unexpected responses cancel.
 //    public class func getPhotoIDMatchNextStep(responseJSONObj: [String: AnyObject]) -> UXNextStep {
 //        // If Liveness Proven on FaceMap, and Match Level between FaceMap and ID Photo is non-zero, then succeed.  Otherwise retry.  Unexpected responses cancel.

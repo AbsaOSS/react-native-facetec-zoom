@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import ZoomAuthentication
+import FaceTecSDK
 
 @objc(ZoomAuth)
 class ZoomAuth:  RCTViewManager, ProcessingDelegate {
@@ -78,7 +78,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       if let auditTrailBase64 = face?.auditTrailCompressedBase64 {
         faceMetrics["auditTrail"] = auditTrailBase64
       }
-      
+
       resultJson["faceMetrics"] = faceMetrics
       self.sendResult(resultJson)
       return
@@ -118,11 +118,11 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
 //    }
 
   }
-  
+
   // Show the final result and transition back into the main interface.
   func onProcessingComplete(isSuccess: Bool, zoomSessionResult: ZoomSessionResult?, zoomIDScanResult: ZoomIDScanResult?) {
   }
-  
+
   func sendResult(_ result: [String:Any]) -> Void {
     if (self.verifyResolver == nil) {
       return
@@ -191,15 +191,15 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
                         resolver resolve: @escaping RCTPromiseResolveBlock,
                         rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
     self.licenseKey = options["licenseKey"] as? String
-    
+
     if (options["zoomServerBaseUrl"] != nil) {
         ZoomGlobalState.ZoomServerBaseURL = options["zoomServerBaseUrl"] as! String
     }
-    
+
     if (options["headers"] != nil) {
         ZoomGlobalState.headers = options["headers"] as! [String: String]
     }
-    
+
     if (options["facemapEncryptionKey"] != nil) {
       let publicKey = options["facemapEncryptionKey"] as! String
       Zoom.sdk.setFaceMapEncryptionKey(publicKey: publicKey);
@@ -259,7 +259,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       }
     )
   }
-    
+
   func addFrameCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
     // Sample UI Customization: vertically center the ZoOm frame within the device's display
     if (options["centerFrame"] as? Bool)! {
@@ -274,7 +274,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       currentCustomization.frameCustomization.borderColor = convertToUIColor(hex: options["borderColor"] as! String)
     }
   }
-    
+
   func addFeedbackCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
     let feedbackCustomization: Dictionary<String, Any> = options["feedbackCustomization"] as! Dictionary<String, Any>
     // Create gradient layer for a custom feedback bar background on iOS
@@ -285,7 +285,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       print("Feedback customizations applied.")
     }
   }
-  
+
   func addOvalCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
     let ovalCustomization: Dictionary<String, Any> = options["ovalCustomization"] as! Dictionary<String, Any>
     if (!ovalCustomization.isEmpty) {
@@ -299,7 +299,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       print("Oval customizations applied.")
     }
   }
-  
+
   func addGuidanceCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
     let guidanceCustomization: Dictionary<String, Any> = options["guidanceCustomization"] as! Dictionary<String, Any>
     // Create gradient layer for a custom feedback bar background on iOS
@@ -307,19 +307,19 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       currentCustomization.guidanceCustomization.foregroundColor = convertToUIColor(hex: guidanceCustomization["foregroundColor"] as! String)
       currentCustomization.guidanceCustomization.readyScreenHeaderTextColor = convertToUIColor(hex: guidanceCustomization["readyScreenHeaderTextColor"] as! String)
       currentCustomization.guidanceCustomization.readyScreenSubtextTextColor = convertToUIColor(hex: guidanceCustomization["readyScreenSubtextTextColor"] as! String)
-      
+
       currentCustomization.guidanceCustomization.buttonTextNormalColor = convertToUIColor(hex: guidanceCustomization["buttonTextNormalColor"] as! String)
       currentCustomization.guidanceCustomization.buttonTextHighlightColor = convertToUIColor(hex: guidanceCustomization["buttonTextHighlightColor"] as! String)
       currentCustomization.guidanceCustomization.buttonTextDisabledColor = convertToUIColor(hex: guidanceCustomization["buttonTextDisabledColor"] as! String)
-      
+
       currentCustomization.guidanceCustomization.buttonBackgroundNormalColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundNormalColor"] as! String)
       currentCustomization.guidanceCustomization.buttonBackgroundHighlightColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundHighlightColor"] as! String)
       currentCustomization.guidanceCustomization.buttonBackgroundDisabledColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundDisabledColor"] as! String)
-      
+
       print("Guidance customizations applied.")
     }
   }
-  
+
   func addResultScreenCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
     let resultScreenCustomization: Dictionary<String, Any> = options["resultScreenCustomization"] as! Dictionary<String, Any>
     // Create gradient layer for a custom feedback bar background on iOS
@@ -328,14 +328,14 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       currentCustomization.resultScreenCustomization.activityIndicatorColor = convertToUIColor(hex: resultScreenCustomization["activityIndicatorColor"] as! String)
       currentCustomization.resultScreenCustomization.uploadProgressFillColor = convertToUIColor(hex: resultScreenCustomization["uploadProgressFillColor"] as! String)
       currentCustomization.resultScreenCustomization.uploadProgressTrackColor = convertToUIColor(hex: resultScreenCustomization["uploadProgressTrackColor"] as! String)
-      
+
       currentCustomization.resultScreenCustomization.resultAnimationBackgroundColor = convertToUIColor(hex: resultScreenCustomization["resultAnimationBackgroundColor"] as! String)
       currentCustomization.resultScreenCustomization.resultAnimationForegroundColor = convertToUIColor(hex: resultScreenCustomization["resultAnimationForegroundColor"] as! String)
 
       print("Guidance customizations applied.")
     }
   }
-    
+
 
   func centerZoomFrameCustomization(currentZoomCustomization: ZoomCustomization) {
     let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
