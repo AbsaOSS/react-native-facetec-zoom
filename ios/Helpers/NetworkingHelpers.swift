@@ -13,14 +13,14 @@ enum UXNextStep {
 
 class NetworkingHelpers {
     // Set up common parameters needed to communicate to the API.
-    class func getCommonParameters(zoomSessionResult: ZoomSessionResult) -> [String : Any] {
-        let zoomFaceMapBase64 = zoomSessionResult.faceMetrics?.faceMapBase64;
+    class func getCommonParameters(faceTecSessionResult: FaceTecSessionResult) -> [String : Any] {
+        let zoomFaceMapBase64 = faceTecSessionResult.faceScanBase64;
 
         var parameters: [String : Any] = [:]
         parameters["faceMap"] = zoomFaceMapBase64
-        parameters["sessionId"] = zoomSessionResult.sessionId
+        parameters["sessionId"] = faceTecSessionResult.sessionId
 
-        if let auditTrail = zoomSessionResult.faceMetrics?.auditTrailCompressedBase64 {
+        if let auditTrail = faceTecSessionResult.auditTrailCompressedBase64 {
             parameters["auditTrailImage"] = auditTrail[0]
         }
 
@@ -28,16 +28,16 @@ class NetworkingHelpers {
     }
 
 //    // Set up parameters needed to communicate to the API for Liveness + Matching (Authenticate).
-//    class func getAuthenticateParameters(zoomSessionResult: ZoomSessionResult) -> [String : Any] {
-//        let zoomFaceMapBase64 = zoomSessionResult.faceMetrics?.faceMapBase64;
+//    class func getAuthenticateParameters(faceTecSessionResult: ZoomSessionResult) -> [String : Any] {
+//        let zoomFaceMapBase64 = faceTecSessionResult.faceMetrics?.faceMapBase64;
 //
 //        var parameters: [String : Any] = [:]
 //        parameters["source"] = ["enrollmentIdentifier": ZoomGlobalState.randomUsername]
 //        parameters["target"] = ["faceMap": zoomFaceMapBase64]
-//        parameters["sessionId"] = zoomSessionResult.sessionId
+//        parameters["sessionId"] = faceTecSessionResult.sessionId
 //        parameters["performContinuousLearning"] = true
 //
-//        if let auditTrail = zoomSessionResult.faceMetrics?.auditTrailCompressedBase64 {
+//        if let auditTrail = faceTecSessionResult.faceMetrics?.auditTrailCompressedBase64 {
 //            parameters["auditTrailImage"] = auditTrail[0]
 //        }
 //
@@ -83,7 +83,7 @@ class NetworkingHelpers {
         // Required parameters to interact with the FaceTec Managed Testing API.
 //        request.addValue(ZoomGlobalState.DeviceLicenseKeyIdentifier, forHTTPHeaderField: "X-Device-License-Key")
         request.addValue(licenseKey, forHTTPHeaderField: "X-Device-License-Key")
-        request.addValue(Zoom.sdk.createZoomAPIUserAgentString(sessionId), forHTTPHeaderField: "User-Agent")
+        request.addValue(FaceTec.sdk.createZoomAPIUserAgentString(sessionId), forHTTPHeaderField: "User-Agent")
 
         let session = URLSession(configuration: URLSessionConfiguration.default, delegate: urlSessionDelegate, delegateQueue: OperationQueue.main)
         let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
@@ -107,15 +107,15 @@ class NetworkingHelpers {
     public class func getLivenessCheckResponseFromZoomServer(
         urlSessionDelegate: URLSessionDelegate,
         licenseKey: String,
-        zoomSessionResult: ZoomSessionResult,
+        faceTecSessionResult: FaceTecSessionResult,
         resultCallback: @escaping (UXNextStep) -> ()
     )
     {
-        let parameters = getCommonParameters(zoomSessionResult: zoomSessionResult)
+        let parameters = getCommonParameters(faceTecSessionResult: faceTecSessionResult)
         callToZoomServerForResult(
             endpoint: ZoomGlobalState.ZoomServerBaseURL + "/liveness",
             parameters: parameters,
-            sessionId: zoomSessionResult.sessionId,
+            sessionId: faceTecSessionResult.sessionId,
             urlSessionDelegate: urlSessionDelegate,
             licenseKey: licenseKey,
             resultCallback: { responseJSONObj in
@@ -128,17 +128,17 @@ class NetworkingHelpers {
     // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
 //    public class func getEnrollmentResponseFromZoomServer(
 //        urlSessionDelegate: URLSessionDelegate,
-//        zoomSessionResult: ZoomSessionResult,
+//        faceTecSessionResult: ZoomSessionResult,
 //        resultCallback: @escaping (UXNextStep) -> ()
 //    )
 //    {
-//        var parameters = getCommonParameters(zoomSessionResult: zoomSessionResult)
+//        var parameters = getCommonParameters(faceTecSessionResult: faceTecSessionResult)
 //        parameters["enrollmentIdentifier"] = ZoomGlobalState.randomUsername
 //
 //        callToZoomServerForResult(
 //            endpoint: ZoomGlobalState.ZoomServerBaseURL + "/enrollment",
 //            parameters: parameters,
-//            sessionId: zoomSessionResult.sessionId,
+//            sessionId: faceTecSessionResult.sessionId,
 //            urlSessionDelegate: urlSessionDelegate,
 //            resultCallback: { responseJSONObj in
 //                let nextStep = ServerResultHelpers.getEnrollmentNextStep(responseJSONObj: responseJSONObj)
@@ -150,16 +150,16 @@ class NetworkingHelpers {
     // Create and send the request.  Parse the results and send the caller what the next step should be (Succeed, Retry, or Cancel).
 //    public class func getAuthenticateResponseFromZoomServer(
 //        urlSessionDelegate: URLSessionDelegate,
-//        zoomSessionResult: ZoomSessionResult,
+//        faceTecSessionResult: ZoomSessionResult,
 //        resultCallback: @escaping (UXNextStep) -> ()
 //    )
 //    {
-//        let parameters = getAuthenticateParameters(zoomSessionResult: zoomSessionResult)
+//        let parameters = getAuthenticateParameters(faceTecSessionResult: faceTecSessionResult)
 //
 //        callToZoomServerForResult(
 //            endpoint: ZoomGlobalState.ZoomServerBaseURL + "/match-3d-3d",
 //            parameters: parameters,
-//            sessionId: zoomSessionResult.sessionId,
+//            sessionId: faceTecSessionResult.sessionId,
 //            urlSessionDelegate: urlSessionDelegate,
 //            resultCallback: { responseJSONObj in
 //                let nextStep = ServerResultHelpers.getAuthenticateNextStep(responseJSONObj: responseJSONObj)
