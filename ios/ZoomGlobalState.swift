@@ -28,5 +28,5 @@ class ZoomGlobalState {
 //    static var isRandomUsernameEnrolled = false
 
     // this app can modify the customization to demonstrate different look/feel preferences for ZoOm
-    static var currentCustomization: ZoomCustomization = ZoomCustomization()
+    static var currentCustomization: FaceTecCustomization = FaceTecCustomization()
 }
