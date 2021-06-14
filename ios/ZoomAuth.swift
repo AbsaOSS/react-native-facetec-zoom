@@ -166,7 +166,7 @@ class ZoomAuth:  RCTViewManager {
   @objc func getVersion(_ resolve: RCTPromiseResolveBlock,
                         rejecter reject: RCTPromiseRejectBlock) -> Void {
 
-      let result: String = Zoom.sdk.version
+      let result: String = FaceTec.sdk.version
 
       if ( !result.isEmpty ) {
           resolve([
