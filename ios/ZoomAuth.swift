@@ -10,7 +10,7 @@ import UIKit
 import FaceTecSDK
 
 @objc(ZoomAuth)
-class ZoomAuth:  RCTViewManager, ProcessingDelegate {
+class ZoomAuth:  RCTViewManager {
 
   var verifyResolver: RCTPromiseResolveBlock? = nil
   var verifyRejecter: RCTPromiseRejectBlock? = nil
@@ -40,8 +40,8 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
   }
 
   // Show the final result and transition back into the main interface.
-  func onProcessingComplete(isSuccess: Bool, zoomSessionResult: ZoomSessionResult?) {
-    let statusCode = zoomSessionResult?.status.rawValue ?? -1
+  func onProcessingComplete(isSuccess: Bool, faceTecSessionResult: FaceTecSessionResult?) {
+    let statusCode = faceTecSessionResult?.status.rawValue ?? -1
     var resultJson:[String:Any] = [
       "success": isSuccess,
       "status": statusCode
@@ -52,65 +52,63 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       return
     }
 
-    resultJson["countOfZoomSessionsPerformed"] = zoomSessionResult?.countOfZoomSessionsPerformed ?? 1
-    resultJson["sessionId"] = zoomSessionResult?.sessionId ?? ""
+//     resultJson["countOfZoomSessionsPerformed"] = faceTecSessionResult?.countOfZoomSessionsPerformed ?? 1
+    resultJson["sessionId"] = faceTecSessionResult?.sessionId ?? ""
 
-    if zoomSessionResult?.faceMetrics == nil {
-      self.sendResult(resultJson)
-      return
-    }
+    if faceTecSessionResult?.faceScanBase64 == nil {
+          self.sendResult(resultJson)
+          return
+        }
 
-    let face = zoomSessionResult?.faceMetrics
-    var faceMetrics: [String:Any] = [:]
-    if self.returnBase64 && face?.faceMapBase64 != nil {
-      faceMetrics["facemap"] = face!.faceMapBase64
-    }
+        var faceMetrics: [String:Any] = [:]
+        if self.returnBase64 && faceTecSessionResult?.faceScanBase64 != nil {
+          faceMetrics["facemap"] = faceTecSessionResult!.faceScanBase64
+        }
 
-//    resultJson["faceMetrics"] = faceMetrics
-    if face?.auditTrail == nil {
-      self.sendResult(resultJson)
-      return
-    }
+    //    resultJson["faceMetrics"] = faceMetrics
+        if faceTecSessionResult?.auditTrailCompressedBase64 == nil {
+          self.sendResult(resultJson)
+          return
+        }
 
-    let auditTrailImages = face!.auditTrail!
-    var auditTrail:[String] = []
-    if self.returnBase64 {
-      if let auditTrailBase64 = face?.auditTrailCompressedBase64 {
-        faceMetrics["auditTrail"] = auditTrailBase64
-      }
+        var auditTrail:[String] = []
+        if self.returnBase64 {
+          if let auditTrailBase64 = faceTecSessionResult?.auditTrailCompressedBase64 {
+            faceMetrics["auditTrail"] = auditTrailBase64
+          }
 
-      resultJson["faceMetrics"] = faceMetrics
-      self.sendResult(resultJson)
-      return
-    }
-
-    var togo = face?.auditTrailCompressedBase64?.count ?? 0
-    if let faceMap = face?.faceMap {
-      togo += 1
-      storeDataInImageStore(faceMap) { (tag) in
-        faceMetrics["facemap"] = tag
-        togo -= 1
-        if togo == 0 {
           resultJson["faceMetrics"] = faceMetrics
           self.sendResult(resultJson)
-        }
-      }
-    }
-
-    for image in auditTrailImages {
-      uiImageToImageStoreKey(image) { (tag) in
-        if (tag != nil) {
-          auditTrail.append(tag!)
+          return
         }
 
-        togo -= 1
-        if togo == 0 {
-          faceMetrics["auditTrail"] = auditTrail
-          resultJson["faceMetrics"] = faceMetrics
-          self.sendResult(resultJson)
-        }
-      }
-    }
+//     var togo = face?.auditTrailCompressedBase64?.count ?? 0
+//     if let faceMap = face?.faceMap {
+//       togo += 1
+//       storeDataInImageStore(faceMap) { (tag) in
+//         faceMetrics["facemap"] = tag
+//         togo -= 1
+//         if togo == 0 {
+//           resultJson["faceMetrics"] = faceMetrics
+//           self.sendResult(resultJson)
+//         }
+//       }
+//     }
+//
+//     for image in auditTrailImages {
+//       uiImageToImageStoreKey(image) { (tag) in
+//         if (tag != nil) {
+//           auditTrail.append(tag!)
+//         }
+//
+//         togo -= 1
+//         if togo == 0 {
+//           faceMetrics["auditTrail"] = auditTrail
+//           resultJson["faceMetrics"] = faceMetrics
+//           self.sendResult(resultJson)
+//         }
+//       }
+//     }
 
 //    EXAMPLE: retrieve facemap
 //    if let zoomFacemap = result.faceMetrics?.zoomFacemap {
@@ -120,7 +118,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
   }
 
   // Show the final result and transition back into the main interface.
-  func onProcessingComplete(isSuccess: Bool, zoomSessionResult: ZoomSessionResult?, zoomIDScanResult: ZoomIDScanResult?) {
+  func onProcessingComplete(isSuccess: Bool, faceTecSessionResult: FaceTecSessionResult?, faceTecIDScanResult: FaceTecIDScanResult?) {
   }
 
   func sendResult(_ result: [String:Any]) -> Void {
@@ -165,11 +163,6 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
   }
 
   // React Method
-  @objc func preload() -> Void {
-    Zoom.sdk.preload()
-  }
-
-  // React Method
   @objc func getVersion(_ resolve: RCTPromiseResolveBlock,
                         rejecter reject: RCTPromiseRejectBlock) -> Void {
 
@@ -202,13 +195,13 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
 
     if (options["facemapEncryptionKey"] != nil) {
       let publicKey = options["facemapEncryptionKey"] as! String
-      Zoom.sdk.setFaceMapEncryptionKey(publicKey: publicKey);
+//       Zoom.sdk.setFaceMapEncryptionKey(publicKey: publicKey);
     }
 
-    Zoom.sdk.auditTrailType = .height640 // otherwise no auditTrail images
+    FaceTec.sdk.auditTrailType = .height640 // otherwise no auditTrail images
 
     // Create the customization object
-    let currentCustomization: ZoomCustomization = ZoomCustomization()
+    let currentCustomization: FaceTecCustomization = FaceTecCustomization()
     // disable the "Your App Logo" section
     currentCustomization.overlayCustomization.brandingImage = nil
 //    currentCustomization.overlayCustomization.blurEffectOpacity = 0
@@ -229,8 +222,8 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
     addResultScreenCustomizations(currentCustomization: currentCustomization, options: options)
 
     // Apply the customization changes
-    Zoom.sdk.setCustomization(currentCustomization)
-    Zoom.sdk.initialize(
+    FaceTec.sdk.setCustomization(currentCustomization)
+    FaceTec.sdk.initialize(
       licenseKeyIdentifier: options["licenseKey"] as! String,
       completion: { (licenseKeyValidated: Bool) -> Void in
         //
@@ -260,7 +253,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
     )
   }
 
-  func addFrameCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
+  func addFrameCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
     // Sample UI Customization: vertically center the ZoOm frame within the device's display
     if (options["centerFrame"] as? Bool)! {
       centerZoomFrameCustomization(currentZoomCustomization: currentCustomization)
@@ -275,7 +268,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
     }
   }
 
-  func addFeedbackCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
+  func addFeedbackCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
     let feedbackCustomization: Dictionary<String, Any> = options["feedbackCustomization"] as! Dictionary<String, Any>
     // Create gradient layer for a custom feedback bar background on iOS
     if (!feedbackCustomization.isEmpty) {
@@ -286,7 +279,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
     }
   }
 
-  func addOvalCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
+  func addOvalCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
     let ovalCustomization: Dictionary<String, Any> = options["ovalCustomization"] as! Dictionary<String, Any>
     if (!ovalCustomization.isEmpty) {
       let supportedColorOvalCustomizations = ["strokeColor", "progressColor1", "progressColor2"]
@@ -300,7 +293,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
     }
   }
 
-  func addGuidanceCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
+  func addGuidanceCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
     let guidanceCustomization: Dictionary<String, Any> = options["guidanceCustomization"] as! Dictionary<String, Any>
     // Create gradient layer for a custom feedback bar background on iOS
     if (!guidanceCustomization.isEmpty) {
@@ -320,7 +313,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
     }
   }
 
-  func addResultScreenCustomizations(currentCustomization: ZoomCustomization, options: Dictionary<String, Any>) {
+  func addResultScreenCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
     let resultScreenCustomization: Dictionary<String, Any> = options["resultScreenCustomization"] as! Dictionary<String, Any>
     // Create gradient layer for a custom feedback bar background on iOS
     if (!resultScreenCustomization.isEmpty) {
@@ -337,17 +330,17 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
   }
 
 
-  func centerZoomFrameCustomization(currentZoomCustomization: ZoomCustomization) {
+  func centerZoomFrameCustomization(currentZoomCustomization: FaceTecCustomization) {
     let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
-    var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+//     var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
     // Detect iPhone X and iPad displays
     if UIScreen.main.fixedCoordinateSpace.bounds.size.height >= 812 {
       let screenWidth = UIScreen.main.fixedCoordinateSpace.bounds.size.width
-      frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+//       frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
     }
-    let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
+//     let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
 
-    currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
+//     currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
   }
 }
 
