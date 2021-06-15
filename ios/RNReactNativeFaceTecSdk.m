@@ -12,7 +12,7 @@
 #import <React/RCTRootView.h>
 #import <React/RCTImageStoreManager.h>
 
-@interface RCT_EXTERN_REMAP_MODULE(RNReactNativeZoomSdk, ZoomAuth, RCTViewManager)
+@interface RCT_EXTERN_REMAP_MODULE(RNReactNativeFaceTecSdk, ZoomAuth, RCTViewManager)
 
 RCT_EXTERN_METHOD(preload)
 
