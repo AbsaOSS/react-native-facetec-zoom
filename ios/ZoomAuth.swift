@@ -10,7 +10,7 @@ import UIKit
 import FaceTecSDK
 
 @objc(ZoomAuth)
-class ZoomAuth:  RCTViewManager {
+class ZoomAuth:  RCTViewManager, URLSessionDelegate {
 
   var verifyResolver: RCTPromiseResolveBlock? = nil
   var verifyRejecter: RCTPromiseRejectBlock? = nil
@@ -34,9 +34,10 @@ class ZoomAuth:  RCTViewManager {
     DispatchQueue.main.async {
 //      let root = UIApplication.shared.keyWindow!.rootViewController!
       var optionsWithKey = options
-      var sessionToken:String = "abcd"
       optionsWithKey["licenseKey"] = self.licenseKey
-        let _ = LivenessCheckProcessor(options: optionsWithKey, sessionToken: sessionToken)
+        self.getSessionToken() { sessionToken in
+            let _ = LivenessCheckProcessor(options: optionsWithKey, sessionToken: sessionToken)
+        }
     }
   }
 
@@ -194,10 +195,10 @@ class ZoomAuth:  RCTViewManager {
         ZoomGlobalState.headers = options["headers"] as! [String: String]
     }
 
-    if (options["facemapEncryptionKey"] != nil) {
-      let publicKey = options["facemapEncryptionKey"] as! String
+//    if (options["facemapEncryptionKey"] != nil) {
+//      let publicKey = options["facemapEncryptionKey"] as! String
 //       Zoom.sdk.setFaceMapEncryptionKey(publicKey: publicKey);
-    }
+//    }
 
     FaceTec.sdk.auditTrailType = .height640 // otherwise no auditTrail images
 
@@ -224,8 +225,9 @@ class ZoomAuth:  RCTViewManager {
 
     // Apply the customization changes
     FaceTec.sdk.setCustomization(currentCustomization)
-    FaceTec.sdk.initialize(
-      licenseKeyIdentifier: options["licenseKey"] as! String,
+    FaceTec.sdk.initializeInDevelopmentMode(
+        deviceKeyIdentifier: options["licenseKey"] as! String,
+        faceScanEncryptionKey: options["facemapEncryptionKey"] as! String,
       completion: { (licenseKeyValidated: Bool) -> Void in
         //
         // We want to ensure that licenseKey is valid before enabling verification
@@ -239,7 +241,7 @@ class ZoomAuth:  RCTViewManager {
           ])
         }
         else {
-          let status = Zoom.sdk.getStatus().rawValue
+          let status = FaceTec.sdk.getStatus().rawValue
           resolve([
             "success": false,
             "status": status
@@ -343,6 +345,40 @@ class ZoomAuth:  RCTViewManager {
 
 //     currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
   }
+
+    func getSessionToken(sessionTokenCallback: @escaping (String) -> ()) {
+//        utils.startSessionTokenConnectionTextTimer();
+
+        let endpoint = ZoomGlobalState.ZoomServerBaseURL + "/session-token"
+        let request = NSMutableURLRequest(url: NSURL(string: endpoint)! as URL)
+        request.httpMethod = "GET"
+        // Required parameters to interact with the FaceTec Managed Testing API.
+        request.addValue(self.licenseKey, forHTTPHeaderField: "X-Device-Key")
+        request.addValue(FaceTec.sdk.createFaceTecAPIUserAgentString(""), forHTTPHeaderField: "User-Agent")
+
+        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: OperationQueue.main)
+        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
+            // Ensure the data object is not nil otherwise callback with empty dictionary.
+            guard let data = data else {
+                print("Exception raised while attempting HTTPS call.")
+//                self.utils.handleErrorGettingServerSessionToken()
+                return
+            }
+            if let responseJSONObj = try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String: AnyObject] {
+                if((responseJSONObj["sessionToken"] as? String) != nil)
+                {
+//                    self.utils.hideSessionTokenConnectionText()
+                    sessionTokenCallback(responseJSONObj["sessionToken"] as! String)
+                    return
+                }
+                else {
+                    print("Exception raised while attempting HTTPS call.")
+//                    self.utils.handleErrorGettingServerSessionToken()
+                }
+            }
+        })
+        task.resume()
+    }
 }
 
 func createGradientLayer(_self: ZoomAuth, hexColor1: String, hexColor2: String) -> CAGradientLayer {
@@ -374,3 +410,4 @@ func convertToUIColor(hex: String, alpha: Int = 1) -> UIColor {
 
   return UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
 }
+
