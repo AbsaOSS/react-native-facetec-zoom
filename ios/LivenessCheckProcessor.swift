@@ -20,6 +20,8 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
         self.options = options
         super.init()
 
+        NSLog("FaceTec - INSIDE LivenessCheckProcessor init, sessionToken: \(sessionToken)")
+
         //
         // Part 1:  Starting the FaceTec Session
         //
@@ -72,10 +74,12 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
         //
         // Part 5:  Make the Networking Call to Your Servers.  Below is just example code, you are free to customize based on how your own API works.
         //
+        NSLog("FaceTec - INSIDE LivenessCheckProcessor url: \(ZoomGlobalState.ZoomServerBaseURL) + /liveness-3d")
         var request = URLRequest(url: NSURL(string: ZoomGlobalState.ZoomServerBaseURL + "/liveness-3d")! as URL)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try! JSONSerialization.data(withJSONObject: parameters, options: JSONSerialization.WritingOptions(rawValue: 0))
+        NSLog("FaceTec - INSIDE LivenessCheckProcessor licenseKey: \(self.options["licenseKey"] as! String)")
         request.addValue(self.options["licenseKey"] as! String, forHTTPHeaderField: "X-Device-Key")
         request.addValue(FaceTec.sdk.createFaceTecAPIUserAgentString(sessionResult.sessionId), forHTTPHeaderField: "User-Agent")
 
@@ -99,6 +103,8 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
                 faceScanResultCallback.onFaceScanResultCancel()
                 return
             }
+
+            NSLog("FaceTec - INSIDE LivenessCheckProcessor, responseJSON[error]: \(responseJSON["error"] as! String)")
 
             guard let scanResultBlob = responseJSON["scanResultBlob"] as? String,
                   let wasProcessed = responseJSON["wasProcessed"] as? Bool else {

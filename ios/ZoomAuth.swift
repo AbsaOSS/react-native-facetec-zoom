@@ -187,8 +187,8 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
                         rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
     self.licenseKey = options["licenseKey"] as? String
 
-    if (options["zoomServerBaseUrl"] != nil) {
-        ZoomGlobalState.ZoomServerBaseURL = options["zoomServerBaseUrl"] as! String
+    if (options["faceTecServerBaseURL"] != nil) {
+        ZoomGlobalState.ZoomServerBaseURL = options["faceTecServerBaseURL"] as! String
     }
 
     if (options["headers"] != nil) {
@@ -350,9 +350,11 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
 //        utils.startSessionTokenConnectionTextTimer();
 
         let endpoint = ZoomGlobalState.ZoomServerBaseURL + "/session-token"
+        NSLog("FaceTec - INSIDE getSessionToken, endpoint: \(endpoint)")
         let request = NSMutableURLRequest(url: NSURL(string: endpoint)! as URL)
         request.httpMethod = "GET"
         // Required parameters to interact with the FaceTec Managed Testing API.
+        NSLog("FaceTec - INSIDE getSessionToken, self.licenseKey: \(self.licenseKey)")
         request.addValue(self.licenseKey, forHTTPHeaderField: "X-Device-Key")
         request.addValue(FaceTec.sdk.createFaceTecAPIUserAgentString(""), forHTTPHeaderField: "User-Agent")
 
@@ -368,10 +370,12 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
                 if((responseJSONObj["sessionToken"] as? String) != nil)
                 {
 //                    self.utils.hideSessionTokenConnectionText()
+                    NSLog("FaceTec - INSIDE getSessionToken, success: \(responseJSONObj["sessionToken"] as! String)")
                     sessionTokenCallback(responseJSONObj["sessionToken"] as! String)
                     return
                 }
                 else {
+                    NSLog("FaceTec - INSIDE getSessionToken, IN else")
                     print("Exception raised while attempting HTTPS call.")
 //                    self.utils.handleErrorGettingServerSessionToken()
                 }
