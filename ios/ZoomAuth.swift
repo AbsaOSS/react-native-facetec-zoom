@@ -32,11 +32,11 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
     self.verifyRejecter = reject
     self.returnBase64 = (options["returnBase64"] as? Bool)!
     DispatchQueue.main.async {
-//      let root = UIApplication.shared.keyWindow!.rootViewController!
+      let root = UIApplication.shared.keyWindow!.rootViewController!
       var optionsWithKey = options
       optionsWithKey["licenseKey"] = self.licenseKey
         self.getSessionToken() { sessionToken in
-            let _ = LivenessCheckProcessor(options: optionsWithKey, sessionToken: sessionToken)
+            let _ = LivenessCheckProcessor(options: optionsWithKey, fromVC: root, sessionToken: sessionToken)
         }
     }
   }

@@ -15,7 +15,7 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
     var faceScanResultCallback: FaceTecFaceScanResultCallback!
     var options: Dictionary<String, Any>
 
-    init(options: Dictionary<String, Any>, sessionToken: String) {
+    init(options: Dictionary<String, Any>, fromVC: UIViewController, sessionToken: String) {
 //        self.fromViewController = fromViewController
         self.options = options
         super.init()
@@ -33,6 +33,7 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
 
         // In your code, you will be presenting from a UIViewController elsewhere. You may choose to augment this class to pass that UIViewController in.
         // In our example code here, to keep the code in this class simple, we will just get the Sample App's UIViewController statically.
+        fromVC.present(livenessCheckViewController, animated: true, completion: nil)
 //        fromViewController.present(livenessCheckViewController, animated: true, completion: nil)
     }
 
@@ -104,7 +105,7 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
                 return
             }
 
-            NSLog("FaceTec - INSIDE LivenessCheckProcessor, responseJSON[error]: \(responseJSON["error"] as! String)")
+            NSLog("FaceTec - INSIDE LivenessCheckProcessor, responseJSON[error]: \(responseJSON["errorMessage"] as! String)")
 
             guard let scanResultBlob = responseJSON["scanResultBlob"] as? String,
                   let wasProcessed = responseJSON["wasProcessed"] as? Bool else {
