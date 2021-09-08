@@ -137,6 +137,7 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
                 try {
                     JSONObject responseJSON = new JSONObject(responseString);
                     boolean successResponse = responseJSON.getBoolean("success");
+                    System.out.println("====== successResponse: " + successResponse);
 //                    boolean wasProcessed = responseJSON.getBoolean("wasProcessed");
 //                    String scanResultBlob = responseJSON.getString("scanResultBlob");
 
@@ -144,6 +145,7 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
                     // Device SDK UI flow is now driven by the proceedToNextStep function, which should receive the scanResultBlob from the Server SDK response.
                     if(successResponse) {
                         success = true;
+                        System.out.println("====== INSIDE if(successResponse), before calling : faceScanResultCallback.succeed()");
                         faceScanResultCallback.succeed();
 
                         // Demonstrates dynamically setting the Success Screen Message.
