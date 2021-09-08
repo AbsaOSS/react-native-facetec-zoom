@@ -332,6 +332,8 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
             return;
         }
 
+        verificationPromise = promise;
+        returnBase64 = opts.getBoolean("returnBase64");
         final Activity activity = getCurrentActivity();
 
         getSessionToken(new SessionTokenCallback() {
