@@ -136,19 +136,22 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
                 response.body().close();
                 try {
                     JSONObject responseJSON = new JSONObject(responseString);
-                    boolean wasProcessed = responseJSON.getBoolean("wasProcessed");
-                    String scanResultBlob = responseJSON.getString("scanResultBlob");
+                    boolean successResponse = responseJSON.getBoolean("success");
+//                    boolean wasProcessed = responseJSON.getBoolean("wasProcessed");
+//                    String scanResultBlob = responseJSON.getString("scanResultBlob");
 
                     // In v9.2.0+, we key off a new property called wasProcessed to determine if we successfully processed the Session result on the Server.
                     // Device SDK UI flow is now driven by the proceedToNextStep function, which should receive the scanResultBlob from the Server SDK response.
-                    if(wasProcessed) {
+                    if(successResponse) {
+                        success = true;
+                        faceScanResultCallback.succeed();
 
                         // Demonstrates dynamically setting the Success Screen Message.
-                        FaceTecCustomization.overrideResultScreenSuccessMessage = "Liveness\nConfirmed";
+//                        FaceTecCustomization.overrideResultScreenSuccessMessage = "Liveness\nConfirmed";
 
                         // In v9.2.0+, simply pass in scanResultBlob to the proceedToNextStep function to advance the User flow.
                         // scanResultBlob is a proprietary, encrypted blob that controls the logic for what happens next for the User.
-                        success = faceScanResultCallback.proceedToNextStep(scanResultBlob);
+//                        success = faceScanResultCallback.proceedToNextStep(scanResultBlob);
                     }
                     else {
                         // CASE:  UNEXPECTED response from API.  Our Sample Code keys off a wasProcessed boolean on the root of the JSON object --> You define your own API contracts with yourself and may choose to do something different here based on the error.
