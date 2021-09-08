@@ -105,12 +105,12 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
                 return
             }
 
-//             if responseJSON["errorMessage"] != nil {
-//                 NSLog("FaceTec - INSIDE LivenessCheckProcessor, responseJSON[error]: \(responseJSON["errorMessage"] as! String)")
-//             }
-//             if responseJSON["success"] != nil {
-//                             NSLog("FaceTec - INSIDE LivenessCheckProcessor, responseJSON[error]: \(responseJSON["success"] as! String)")
-//             }
+            if responseJSON["errorMessage"] != nil {
+                NSLog("FaceTec - INSIDE LivenessCheckProcessor, responseJSON[error]: \(responseJSON["errorMessage"] as! String)")
+            }
+            if responseJSON["success"] != nil {
+                            NSLog("FaceTec - INSIDE LivenessCheckProcessor, responseJSON[success]: \(responseJSON["success"] as! Bool)")
+            }
 
             guard let scanResultBlob = responseJSON["scanResultBlob"] as? String,
                   let successResponse = responseJSON["success"] as? Bool else {
