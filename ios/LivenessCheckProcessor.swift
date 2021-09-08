@@ -128,6 +128,7 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
 
                 // In v9.2.0+, simply pass in scanResultBlob to the proceedToNextStep function to advance the User flow.
                 // scanResultBlob is a proprietary, encrypted blob that controls the logic for what happens next for the User.
+                self.success = true
 //                 self.success = faceScanResultCallback.onFaceScanGoToNextStep(scanResultBlob: scanResultBlob)
             }
             else {
