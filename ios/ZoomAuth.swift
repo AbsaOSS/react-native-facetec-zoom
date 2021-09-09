@@ -36,13 +36,13 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
       var optionsWithKey = options
       optionsWithKey["licenseKey"] = self.licenseKey
         self.getSessionToken() { sessionToken in
-            let _ = LivenessCheckProcessor(options: optionsWithKey, fromVC: root, sessionToken: sessionToken)
+            let _ = LivenessCheckProcessor(options: optionsWithKey, fromVC: root, sessionToken: sessionToken, zoomAuth: self)
         }
     }
   }
 
   // Show the final result and transition back into the main interface.
-  func onProcessingComplete(isSuccess: Bool, faceTecSessionResult: FaceTecSessionResult?) {
+  func onProcessingComplete(isSuccess: Bool, faceTecSessionResult: [String:Any]?) {
     let statusCode = faceTecSessionResult?.status.rawValue ?? -1
     var resultJson:[String:Any] = [
       "success": isSuccess,

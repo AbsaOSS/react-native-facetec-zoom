@@ -15,7 +15,7 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
     var faceScanResultCallback: FaceTecFaceScanResultCallback!
     var options: Dictionary<String, Any>
 
-    init(options: Dictionary<String, Any>, fromVC: UIViewController, sessionToken: String) {
+    init(options: Dictionary<String, Any>, fromVC: UIViewController, sessionToken: String, zoomAuth: ZoomAuth) {
 //        self.fromViewController = fromViewController
         self.options = options
         super.init()
@@ -129,6 +129,7 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
                 // In v9.2.0+, simply pass in scanResultBlob to the proceedToNextStep function to advance the User flow.
                 // scanResultBlob is a proprietary, encrypted blob that controls the logic for what happens next for the User.
                 self.success = true
+                zoomAuth.onProcessingComplete(true, responseJSON)
                 faceScanResultCallback.onFaceScanResultCancel()
 //                 self.success = faceScanResultCallback.onFaceScanGoToNextStep(scanResultBlob: scanResultBlob)
             }
