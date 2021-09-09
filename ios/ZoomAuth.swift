@@ -42,7 +42,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
   }
 
   // Show the final result and transition back into the main interface.
-  func onProcessingComplete(isSuccess: Bool, faceTecSessionResult: [String:Any]?) {
+  func onProcessingComplete(isSuccess: Bool, faceTecSessionResult: FaceTecSessionResult?) {
     let statusCode = faceTecSessionResult?.status.rawValue ?? -1
     var resultJson:[String:Any] = [
       "success": isSuccess,
