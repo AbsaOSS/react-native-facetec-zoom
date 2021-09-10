@@ -11,6 +11,7 @@ import FaceTecSDK
 class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDelegate, URLSessionTaskDelegate {
     var latestNetworkRequest: URLSessionTask!
     var success = false
+    var processingCompleteCalled = false
 //    var fromViewController: SampleAppViewController!
     var faceScanResultCallback: FaceTecFaceScanResultCallback!
     var options: Dictionary<String, Any>
@@ -114,8 +115,9 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
                             NSLog("FaceTec - INSIDE LivenessCheckProcessor, responseJSON[success]: \(responseJSON["success"] as! Bool)")
             }
 
-            guard let scanResultBlob = responseJSON["scanResultBlob"] as? String,
-                  let successResponse = responseJSON["success"] as? Bool else {
+            // guard let scanResultBlob = responseJSON["scanResultBlob"] as? String,
+
+            guard let successResponse = responseJSON["success"] as? Bool else {
                 // CASE:  UNEXPECTED response from API.  Our Sample Code keys off a wasProcessed boolean on the root of the JSON object --> You define your own API contracts with yourself and may choose to do something different here based on the error.
                 faceScanResultCallback.onFaceScanResultCancel()
                 return;
@@ -137,9 +139,11 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
             }
             else {
                 // CASE:  UNEXPECTED response from API.  Our Sample Code keys off a wasProcessed boolean on the root of the JSON object --> You define your own API contracts with yourself and may choose to do something different here based on the error.
+                self.zoomAuth.onProcessingComplete(isSuccess: false, faceTecSessionResult: sessionResult)
                 faceScanResultCallback.onFaceScanResultCancel()
                 return;
             }
+            self.processingCompleteCalled = true
         })
 
         //
@@ -177,7 +181,7 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
         // In your code, you will handle what to do after the Liveness Check is successful here.
         // In our example code here, to keep the code in this class simple, we will call a static method on another class to update the Sample App UI.
 //        self.fromViewController.onComplete();
-           if !self.success {
+           if !self.processingCompleteCalled {
             self.zoomAuth.onProcessingComplete(isSuccess: false, faceTecSessionResult: nil)
            }
     }
