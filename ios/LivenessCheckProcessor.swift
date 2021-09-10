@@ -178,7 +178,7 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
         // In our example code here, to keep the code in this class simple, we will call a static method on another class to update the Sample App UI.
 //        self.fromViewController.onComplete();
            if !self.success {
-            self.zoomAuth.onProcessingComplete(isSuccess: false, faceTecSessionResult: null)
+            self.zoomAuth.onProcessingComplete(isSuccess: false, faceTecSessionResult: nil)
            }
     }
 
