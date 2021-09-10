@@ -131,7 +131,7 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
                 // In v9.2.0+, simply pass in scanResultBlob to the proceedToNextStep function to advance the User flow.
                 // scanResultBlob is a proprietary, encrypted blob that controls the logic for what happens next for the User.
                 self.success = true
-                self.zoomAuth.onProcessingComplete(true, responseJSON)
+                self.zoomAuth.onProcessingComplete(true, sessionResult)
                 faceScanResultCallback.onFaceScanResultCancel()
 //                 self.success = faceScanResultCallback.onFaceScanGoToNextStep(scanResultBlob: scanResultBlob)
             }
@@ -177,6 +177,9 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
         // In your code, you will handle what to do after the Liveness Check is successful here.
         // In our example code here, to keep the code in this class simple, we will call a static method on another class to update the Sample App UI.
 //        self.fromViewController.onComplete();
+           if !self.success {
+            self.zoomAuth.onProcessingComplete(false, null)
+           }
     }
 
     func isSuccess() -> Bool {
