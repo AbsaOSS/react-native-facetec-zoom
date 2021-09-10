@@ -63,6 +63,8 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
                 latestNetworkRequest.cancel()
             }
 
+            self.zoomAuth.onProcessingComplete(isSuccess: false, faceTecSessionResult: sessionResult)
+            self.processingCompleteCalled = true
             faceScanResultCallback.onFaceScanResultCancel()
             return
         }
