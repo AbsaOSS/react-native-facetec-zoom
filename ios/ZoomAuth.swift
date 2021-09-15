@@ -368,12 +368,12 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
                 if((responseJSONObj["sessionToken"] as? String) != nil)
                 {
 //                    self.utils.hideSessionTokenConnectionText()
-                    self.sessionTokenCallback(responseJSONObj["sessionToken"] as! String)
+                    sessionTokenCallback(responseJSONObj["sessionToken"] as! String)
                     return
                 }
                 else {
                     print("Exception raised while attempting HTTPS call.")
-                    onProcessingComplete(isSuccess: false, faceTecSessionResult: nil)
+                    self.onProcessingComplete(isSuccess: false, faceTecSessionResult: nil)
 //                    self.utils.handleErrorGettingServerSessionToken()
                 }
             }
