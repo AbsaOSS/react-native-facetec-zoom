@@ -405,7 +405,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
     }
 
 private void handleErrorGettingServerSessionToken() {
-        WritableMap resultObj;
+        WritableMap resultObj = Arguments.createMap();
         resultObj.putBoolean("success", false);
         verificationPromise.resolve(resultObj);
     }
