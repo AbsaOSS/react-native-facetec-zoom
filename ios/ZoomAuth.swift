@@ -292,18 +292,18 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
     }
   }
 
-
+// topMargin not defined in FaceTecCustomization.frameCustomization
   func centerZoomFrameCustomization(currentZoomCustomization: FaceTecCustomization) {
-    let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
-    var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+//     let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
+//     var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
     // Detect iPhone X and iPad displays
-    if UIScreen.main.fixedCoordinateSpace.bounds.size.height >= 812 {
-      let screenWidth = UIScreen.main.fixedCoordinateSpace.bounds.size.width
-      frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
-    }
-    let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
-
-    currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
+//     if UIScreen.main.fixedCoordinateSpace.bounds.size.height >= 812 {
+//       let screenWidth = UIScreen.main.fixedCoordinateSpace.bounds.size.width
+//       frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+//     }
+//     let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
+//
+//     currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
   }
 
     func getSessionToken(sessionTokenCallback: @escaping (String) -> ()) {
