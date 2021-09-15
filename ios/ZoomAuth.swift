@@ -54,7 +54,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
       return
     }
 
-//     resultJson["countOfZoomSessionsPerformed"] = faceTecSessionResult?.countOfZoomSessionsPerformed ?? 1
+    resultJson["countOfZoomSessionsPerformed"] = faceTecSessionResult?.countOfZoomSessionsPerformed ?? 1
     resultJson["sessionId"] = faceTecSessionResult?.sessionId ?? ""
 
     if faceTecSessionResult?.faceScanBase64 == nil {
@@ -84,33 +84,33 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
           return
         }
 
-//     var togo = face?.auditTrailCompressedBase64?.count ?? 0
-//     if let faceMap = face?.faceMap {
-//       togo += 1
-//       storeDataInImageStore(faceMap) { (tag) in
-//         faceMetrics["facemap"] = tag
-//         togo -= 1
-//         if togo == 0 {
-//           resultJson["faceMetrics"] = faceMetrics
-//           self.sendResult(resultJson)
-//         }
-//       }
-//     }
-//
-//     for image in auditTrailImages {
-//       uiImageToImageStoreKey(image) { (tag) in
-//         if (tag != nil) {
-//           auditTrail.append(tag!)
-//         }
-//
-//         togo -= 1
-//         if togo == 0 {
-//           faceMetrics["auditTrail"] = auditTrail
-//           resultJson["faceMetrics"] = faceMetrics
-//           self.sendResult(resultJson)
-//         }
-//       }
-//     }
+    var togo = face?.auditTrailCompressedBase64?.count ?? 0
+    if let faceMap = face?.faceMap {
+      togo += 1
+      storeDataInImageStore(faceMap) { (tag) in
+        faceMetrics["facemap"] = tag
+        togo -= 1
+        if togo == 0 {
+          resultJson["faceMetrics"] = faceMetrics
+          self.sendResult(resultJson)
+        }
+      }
+    }
+
+    for image in auditTrailImages {
+      uiImageToImageStoreKey(image) { (tag) in
+        if (tag != nil) {
+          auditTrail.append(tag!)
+        }
+
+        togo -= 1
+        if togo == 0 {
+          faceMetrics["auditTrail"] = auditTrail
+          resultJson["faceMetrics"] = faceMetrics
+          self.sendResult(resultJson)
+        }
+      }
+    }
 
 //    EXAMPLE: retrieve facemap
 //    if let zoomFacemap = result.faceMetrics?.zoomFacemap {
@@ -194,11 +194,6 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
     if (options["headers"] != nil) {
         ZoomGlobalState.headers = options["headers"] as! [String: String]
     }
-
-//    if (options["facemapEncryptionKey"] != nil) {
-//      let publicKey = options["facemapEncryptionKey"] as! String
-//       Zoom.sdk.setFaceMapEncryptionKey(publicKey: publicKey);
-//    }
 
     FaceTec.sdk.auditTrailType = .height640 // otherwise no auditTrail images
 
@@ -335,20 +330,18 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
 
   func centerZoomFrameCustomization(currentZoomCustomization: FaceTecCustomization) {
     let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
-//     var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+    var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
     // Detect iPhone X and iPad displays
     if UIScreen.main.fixedCoordinateSpace.bounds.size.height >= 812 {
       let screenWidth = UIScreen.main.fixedCoordinateSpace.bounds.size.width
-//       frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+      frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
     }
-//     let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
+    let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
 
-//     currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
+    currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
   }
 
     func getSessionToken(sessionTokenCallback: @escaping (String) -> ()) {
-//        utils.startSessionTokenConnectionTextTimer();
-
         let endpoint = ZoomGlobalState.ZoomServerBaseURL + "/session-token"
         let request = NSMutableURLRequest(url: NSURL(string: endpoint)! as URL)
         request.httpMethod = "GET"
@@ -361,20 +354,18 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
             // Ensure the data object is not nil otherwise callback with empty dictionary.
             guard let data = data else {
                 print("Exception raised while attempting HTTPS call.")
-//                self.utils.handleErrorGettingServerSessionToken()
+                self.onProcessingComplete(isSuccess: false, faceTecSessionResult: nil)
                 return
             }
             if let responseJSONObj = try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String: AnyObject] {
                 if((responseJSONObj["sessionToken"] as? String) != nil)
                 {
-//                    self.utils.hideSessionTokenConnectionText()
                     sessionTokenCallback(responseJSONObj["sessionToken"] as! String)
                     return
                 }
                 else {
                     print("Exception raised while attempting HTTPS call.")
                     self.onProcessingComplete(isSuccess: false, faceTecSessionResult: nil)
-//                    self.utils.handleErrorGettingServerSessionToken()
                 }
             }
         })
