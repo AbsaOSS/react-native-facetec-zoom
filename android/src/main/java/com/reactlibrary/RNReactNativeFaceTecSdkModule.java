@@ -373,7 +373,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
 
                 // If this comes from HTTPS cancel call, don't set the sub code to NETWORK_ERROR.
                 if(!e.getMessage().equals(NetworkingHelpers.OK_HTTP_RESPONSE_CANCELED)) {
-//                    utils.handleErrorGettingServerSessionToken();
+                    handleErrorGettingServerSessionToken();
                 }
             }
 
@@ -392,16 +392,22 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                     }
                     else {
                         System.out.println("======INSIDE  ELSE OF if(responseJSON.has(\"sessionToken\"))");
-//                        utils.handleErrorGettingServerSessionToken();
+                        handleErrorGettingServerSessionToken();
                     }
                 }
                 catch(JSONException e) {
                     e.printStackTrace();
                     Log.d("FaceTecSDKSampleApp", "Exception raised while attempting to parse JSON result.");
-//                    utils.handleErrorGettingServerSessionToken();
+                    handleErrorGettingServerSessionToken();
                 }
             }
         });
+    }
+
+private void handleErrorGettingServerSessionToken() {
+        WritableMap resultObj;
+        resultObj.putBoolean("success", false);
+        verificationPromise.resolve(resultObj);
     }
 
 //  @ReactMethod
