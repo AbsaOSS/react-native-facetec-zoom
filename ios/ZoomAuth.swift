@@ -368,7 +368,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
                 if((responseJSONObj["sessionToken"] as? String) != nil)
                 {
 //                    self.utils.hideSessionTokenConnectionText()
-                    sessionTokenCallback(responseJSONObj["sessionToken"] as! String)
+                    self.sessionTokenCallback(responseJSONObj["sessionToken"] as! String)
                     return
                 }
                 else {
