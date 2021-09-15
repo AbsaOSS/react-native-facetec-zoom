@@ -54,7 +54,6 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
       return
     }
 
-    resultJson["countOfZoomSessionsPerformed"] = faceTecSessionResult?.countOfZoomSessionsPerformed ?? 1
     resultJson["sessionId"] = faceTecSessionResult?.sessionId ?? ""
 
     if faceTecSessionResult?.faceScanBase64 == nil {
@@ -83,40 +82,6 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
           self.sendResult(resultJson)
           return
         }
-
-    var togo = face?.auditTrailCompressedBase64?.count ?? 0
-    if let faceMap = face?.faceMap {
-      togo += 1
-      storeDataInImageStore(faceMap) { (tag) in
-        faceMetrics["facemap"] = tag
-        togo -= 1
-        if togo == 0 {
-          resultJson["faceMetrics"] = faceMetrics
-          self.sendResult(resultJson)
-        }
-      }
-    }
-
-    for image in auditTrailImages {
-      uiImageToImageStoreKey(image) { (tag) in
-        if (tag != nil) {
-          auditTrail.append(tag!)
-        }
-
-        togo -= 1
-        if togo == 0 {
-          faceMetrics["auditTrail"] = auditTrail
-          resultJson["faceMetrics"] = faceMetrics
-          self.sendResult(resultJson)
-        }
-      }
-    }
-
-//    EXAMPLE: retrieve facemap
-//    if let zoomFacemap = result.faceMetrics?.zoomFacemap {
-//      // handle ZoOm Facemap
-//    }
-
   }
 
   // Show the final result and transition back into the main interface.
