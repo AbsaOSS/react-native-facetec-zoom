@@ -100,7 +100,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         licenseKey = opts.getString("licenseKey");
 
         if (opts.hasKey("faceTecServerBaseURL")) {
-            System.out.println("======INSIDE  initialize faceTecServerBaseURL: " + opts.getString("faceTecServerBaseURL"));
             FaceTecGlobalState.FaceTecServerBaseURL = opts.getString("faceTecServerBaseURL");
         }
 
@@ -326,7 +325,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         getSessionToken(new SessionTokenCallback() {
             @Override
             public void onSessionTokenReceived(String sessionToken) {
-                System.out.println("======INSIDE  onSessionTokenReceived, BEFORE calling LivenessCheckProcessor");
                 new LivenessCheckProcessor(licenseKey, sessionToken, activity);
             }
         });
@@ -345,11 +343,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                 .get()
                 .build();
 
-        System.out.println("====== licenseKey: " + licenseKey);
-        System.out.println("====== User-Agent: " + FaceTecSDK.createFaceTecAPIUserAgentString(""));
-        System.out.println("====== SessionToken URL: " + FaceTecGlobalState.FaceTecServerBaseURL + "/session-token");
-
-
         NetworkingHelpers.getApiClient().newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -365,18 +358,14 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
             @Override
             public void onResponse(Call call, okhttp3.Response response) throws IOException {
                 String responseString = response.body().string();
-                System.out.println("====== responseString: " + responseString);
                 response.body().close();
                 try {
                     JSONObject responseJSON = new JSONObject(responseString);
                     if(responseJSON.has("sessionToken")) {
-                        System.out.println("======INSIDE  if(responseJSON.has(\"sessionToken\"))");
 //                        utils.hideSessionTokenConnectionText();
-                        System.out.println("====== sessionToken: " + responseJSON.getString("sessionToken"));
                         sessionTokenCallback.onSessionTokenReceived(responseJSON.getString("sessionToken"));
                     }
                     else {
-                        System.out.println("======INSIDE  ELSE OF if(responseJSON.has(\"sessionToken\"))");
                         handleErrorGettingServerSessionToken();
                     }
                 }
