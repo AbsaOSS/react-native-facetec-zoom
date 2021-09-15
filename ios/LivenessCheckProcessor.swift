@@ -23,8 +23,6 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
         self.zoomAuth = zoomAuth
         super.init()
 
-        NSLog("FaceTec - INSIDE LivenessCheckProcessor init, sessionToken: \(sessionToken)")
-
         //
         // Part 1:  Starting the FaceTec Session
         //
@@ -80,12 +78,10 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
         //
         // Part 5:  Make the Networking Call to Your Servers.  Below is just example code, you are free to customize based on how your own API works.
         //
-        NSLog("FaceTec - INSIDE LivenessCheckProcessor url: \(ZoomGlobalState.ZoomServerBaseURL) + /liveness-3d")
         var request = URLRequest(url: NSURL(string: ZoomGlobalState.ZoomServerBaseURL + "/liveness-3d")! as URL)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try! JSONSerialization.data(withJSONObject: parameters, options: JSONSerialization.WritingOptions(rawValue: 0))
-        NSLog("FaceTec - INSIDE LivenessCheckProcessor licenseKey: \(self.options["licenseKey"] as! String)")
         request.addValue(self.options["licenseKey"] as! String, forHTTPHeaderField: "X-Device-Key")
         request.addValue(FaceTec.sdk.createFaceTecAPIUserAgentString(sessionResult.sessionId), forHTTPHeaderField: "User-Agent")
 
@@ -108,13 +104,6 @@ class LivenessCheckProcessor: NSObject, Processor, FaceTecFaceScanProcessorDeleg
                 // CASE:  UNEXPECTED response from API.  Our Sample Code keys off a wasProcessed boolean on the root of the JSON object --> You define your own API contracts with yourself and may choose to do something different here based on the error.
                 faceScanResultCallback.onFaceScanResultCancel()
                 return
-            }
-
-            if responseJSON["errorMessage"] != nil {
-                NSLog("FaceTec - INSIDE LivenessCheckProcessor, responseJSON[error]: \(responseJSON["errorMessage"] as! String)")
-            }
-            if responseJSON["success"] != nil {
-                            NSLog("FaceTec - INSIDE LivenessCheckProcessor, responseJSON[success]: \(responseJSON["success"] as! Bool)")
             }
 
             // guard let scanResultBlob = responseJSON["scanResultBlob"] as? String,
