@@ -312,19 +312,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
     //     this.cordova.startActivityForResult(this, authenticationIntent, FaceTecSDK.REQUEST_CODE_AUTHENTICATION);
     // }
 
-//    @ReactMethod
-//    public void verify(ReadableMap opts, final Promise promise) {
-//        if (!initialized) {
-//            promise.reject(new RuntimeException("NotInitialized"));
-//            return;
-//        }
-//
-//        verificationPromise = promise;
-//        returnBase64 = opts.getBoolean("returnBase64");
-//        Activity activity = getCurrentActivity();
-//        new LivenessCheckProcessor(activity, this.licenseKey);
-//    }
-
     @ReactMethod
     public void verify(final ReadableMap opts, final Promise promise) {
         if (!initialized) {
@@ -350,8 +337,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
     }
 
     public void getSessionToken(final SessionTokenCallback sessionTokenCallback) {
-//        utils.showSessionTokenConnectionText();
-
         // Do the network call and handle result
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .header("X-Device-Key", licenseKey)

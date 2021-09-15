@@ -17,7 +17,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
 
-//import com.facetec.sampleapp.SampleAppActivity;
 import com.facebook.react.bridge.ReadableMap;
 import com.facetec.sdk.*;
 
@@ -28,11 +27,9 @@ import com.facetec.sdk.*;
 // Android Note 2:  Android does not have a onFaceTecSDKCompletelyDone function that you must implement like "Part 10" of iOS and Android Samples.  Instead, onActivityResult is used as the place in code you get control back from the FaceTec SDK.
 public class LivenessCheckProcessor extends Processor implements FaceTecFaceScanProcessor {
     private boolean success = false;
-//    final private SampleAppActivity sampleAppActivity;
     final private String licenseKey;
 
     public LivenessCheckProcessor(String licenseKey, String sessionToken, Context context) {
-//        this.sampleAppActivity = (SampleAppActivity) context;
         this.licenseKey = licenseKey;
 
         //
@@ -57,7 +54,6 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
         // DEVELOPER NOTE:  These properties are for demonstration purposes only so the Sample App can get information about what is happening in the processor.
         // In the code in your own App, you can pass around signals, flags, intermediates, and results however you would like.
         //
-//        sampleAppActivity.setLatestSessionResult(sessionResult);
 
         //
         // Part 3:  Handles early exit scenarios where there is no FaceScan to handle -- i.e. User Cancellation, Timeouts, etc.
@@ -147,9 +143,6 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
                         success = true;
                         System.out.println("====== INSIDE if(successResponse), before calling : faceScanResultCallback.succeed()");
                         faceScanResultCallback.succeed();
-
-                        // Demonstrates dynamically setting the Success Screen Message.
-//                        FaceTecCustomization.overrideResultScreenSuccessMessage = "Liveness\nConfirmed";
 
                         // In v9.2.0+, simply pass in scanResultBlob to the proceedToNextStep function to advance the User flow.
                         // scanResultBlob is a proprietary, encrypted blob that controls the logic for what happens next for the User.
