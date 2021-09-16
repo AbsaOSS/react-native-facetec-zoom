@@ -245,7 +245,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
       let backgroundColors = feedbackCustomization["backgroundColor"] as! Array<String>
       let zoomGradientLayer = createGradientLayer(_self: self, hexColor1: backgroundColors[0], hexColor2: backgroundColors[1])
       currentCustomization.feedbackCustomization.backgroundColor = zoomGradientLayer
-      currentCustomization.feedbackCustomization.textColor = convertToUIColor(hex: options["textColor"] as! String)
+      currentCustomization.feedbackCustomization.textColor = convertToUIColor(hex: feedbackCustomization["textColor"] as! String)
       print("Feedback customizations applied.")
     }
   }
