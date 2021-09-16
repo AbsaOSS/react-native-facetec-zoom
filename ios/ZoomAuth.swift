@@ -165,7 +165,14 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
     // Create the customization object
     let currentCustomization: FaceTecCustomization = FaceTecCustomization()
     // disable the "Your App Logo" section
+
     currentCustomization.overlayCustomization.brandingImage = nil
+
+    let overlayCustomization: Dictionary<String, Any> = options["overlayCustomization"] as! Dictionary<String, Any>
+    if (!overlayCustomization.isEmpty) {
+          currentCustomization.overlayCustomization.backgroundColor = convertToUIColor(hex: overlayCustomization["backgroundColor"] as! String)
+        }
+
 //    currentCustomization.overlayCustomization.blurEffectOpacity = 0
 //    currentCustomization.frameCustomization.blurEffectOpacity = 0
 //    currentCustomization.guidanceCustomization.showIntroScreenBrandingImage = false
