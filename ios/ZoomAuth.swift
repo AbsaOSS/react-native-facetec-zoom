@@ -225,9 +225,9 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
 
   func addFrameCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
     // Sample UI Customization: vertically center the ZoOm frame within the device's display
-    if (options["centerFrame"] as? Bool)! {
-      centerZoomFrameCustomization(currentZoomCustomization: currentCustomization)
-    }
+//     if (options["centerFrame"] as? Bool)! {
+//       centerZoomFrameCustomization(currentZoomCustomization: currentCustomization)
+//     }
     let frameCustomization: Dictionary<String, Any> = options["frameCustomization"] as! Dictionary<String, Any>
     if (!frameCustomization.isEmpty) {
         currentCustomization.frameCustomization.backgroundColor = convertToUIColor(hex: frameCustomization["backgroundColor"] as! String)
@@ -300,7 +300,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
     }
   }
 
-// topMargin not defined in FaceTecCustomization.frameCustomization
+// topMargin and sizeRatio not defined in FaceTecCustomization.frameCustomization
   func centerZoomFrameCustomization(currentZoomCustomization: FaceTecCustomization) {
 //     let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
 //     var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
