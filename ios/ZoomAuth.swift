@@ -228,13 +228,10 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
     if (options["centerFrame"] as? Bool)! {
       centerZoomFrameCustomization(currentZoomCustomization: currentCustomization)
     }
-
-    if (options["backgroundColor"] != nil) {
-      currentCustomization.frameCustomization.backgroundColor = convertToUIColor(hex: options["backgroundColor"] as! String)
-    }
-
-    if (options["borderColor"] != nil) {
-      currentCustomization.frameCustomization.borderColor = convertToUIColor(hex: options["borderColor"] as! String)
+    let frameCustomization: Dictionary<String, Any> = options["frameCustomization"] as! Dictionary<String, Any>
+    if (!frameCustomization.isEmpty) {
+        currentCustomization.frameCustomization.backgroundColor = convertToUIColor(hex: frameCustomization["backgroundColor"] as! String)
+        currentCustomization.frameCustomization.borderColor = convertToUIColor(hex: frameCustomization["borderColor"] as! String)
     }
   }
 
