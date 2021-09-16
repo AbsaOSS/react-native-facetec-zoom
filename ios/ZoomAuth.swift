@@ -270,6 +270,8 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
       currentCustomization.guidanceCustomization.foregroundColor = convertToUIColor(hex: guidanceCustomization["foregroundColor"] as! String)
       currentCustomization.guidanceCustomization.readyScreenHeaderTextColor = convertToUIColor(hex: guidanceCustomization["readyScreenHeaderTextColor"] as! String)
       currentCustomization.guidanceCustomization.readyScreenSubtextTextColor = convertToUIColor(hex: guidanceCustomization["readyScreenSubtextTextColor"] as! String)
+      currentCustomization.guidanceCustomization.retryScreenHeaderTextColor = convertToUIColor(hex: guidanceCustomization["retryScreenHeaderTextColor"] as! String)
+      currentCustomization.guidanceCustomization.retryScreenSubtextTextColor = convertToUIColor(hex: guidanceCustomization["retryScreenSubtextTextColor"] as! String)
 
       currentCustomization.guidanceCustomization.buttonTextNormalColor = convertToUIColor(hex: guidanceCustomization["buttonTextNormalColor"] as! String)
       currentCustomization.guidanceCustomization.buttonTextHighlightColor = convertToUIColor(hex: guidanceCustomization["buttonTextHighlightColor"] as! String)
