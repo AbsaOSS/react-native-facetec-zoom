@@ -119,10 +119,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
             public void run() {
                 FaceTecCustomization currentCustomization = new FaceTecCustomization();
                 FaceTecSDK.setAuditTrailType(FaceTecAuditTrailType.HEIGHT_640);
-//        currentCustomization.showPreEnrollmentScreen = opts.getBoolean("showPreEnrollmentScreen");
-//        currentCustomization.showUserLockedScreen = opts.getBoolean("showUserLockedScreen");
-//        currentCustomization.showRetryScreen= opts.getBoolean("showRetryScreen");
-//        currentCustomization.enableLowLightMode = opts.getBoolean("enableLowLightMode");
 
                 addFrameCustomizations(currentCustomization, opts);
                 addFeedbackCustomizations(currentCustomization, opts);
@@ -152,17 +148,19 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
     }
 
     private void addFrameCustomizations(FaceTecCustomization currentCustomization, ReadableMap opts) {
-        FaceTecFrameCustomization frameCustomization = new FaceTecFrameCustomization();
+        if (!opts.isNull("frameCustomization")) {
+            FaceTecFrameCustomization frameCustomization = new FaceTecFrameCustomization();
+            ReadableMap frameCustomizationOptions = opts.getMap("frameCustomization");
 
-        if (opts.hasKey("backgroundColor")) {
-            frameCustomization.backgroundColor = Color.parseColor(opts.getString("backgroundColor"));
+            if (frameCustomizationOptions.hasKey("backgroundColor")) {
+                frameCustomization.backgroundColor = Color.parseColor(frameCustomizationOptions.getString("backgroundColor"));
+            }
+            if (frameCustomizationOptions.hasKey("borderColor")) {
+                frameCustomization.borderColor = Color.parseColor(frameCustomizationOptions.getString("borderColor"));
+            }
+            currentCustomization.setFrameCustomization(frameCustomization);
+            Log.d(TAG, "Frame customizations applied.");
         }
-
-        if (opts.hasKey("borderColor")) {
-            frameCustomization.borderColor= Color.parseColor(opts.getString("borderColor"));
-        }
-
-        currentCustomization.setFrameCustomization(frameCustomization);
     }
 
     private void addFeedbackCustomizations(FaceTecCustomization currentCustomization, ReadableMap opts) {
@@ -177,6 +175,9 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                 // doesn't allow to set gradient, so we take just the first.
                 String backgroundColor = backgroundColors.getString(0);
                 feedbackCustomization.backgroundColors = Color.parseColor(backgroundColor);
+            }
+            if (feedbackCustomizationOptions.hasKey("textColor")) {
+                feedbackCustomization.textColor = Color.parseColor(feedbackCustomizationOptions.getString("textColor"));
             }
 
             currentCustomization.setFeedbackCustomization(feedbackCustomization);
@@ -235,6 +236,15 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
             if (guidanceCustomizationOptions.hasKey("buttonBackgroundDisabledColor")) {
                 guidanceCustomization.buttonBackgroundDisabledColor = Color.parseColor(guidanceCustomizationOptions.getString("buttonBackgroundDisabledColor"));
             }
+            if (guidanceCustomizationOptions.hasKey("retryScreenHeaderTextColor")) {
+                guidanceCustomization.retryScreenHeaderTextColor = Color.parseColor(guidanceCustomizationOptions.getString("retryScreenHeaderTextColor"));
+            }
+            if (guidanceCustomizationOptions.hasKey("retryScreenSubtextTextColor")) {
+                guidanceCustomization.retryScreenSubtextTextColor = Color.parseColor(guidanceCustomizationOptions.getString("retryScreenSubtextTextColor"));
+            }
+            if (guidanceCustomizationOptions.hasKey("retryScreenImageBorderColor")) {
+                guidanceCustomization.retryScreenImageBorderColor = Color.parseColor(guidanceCustomizationOptions.getString("retryScreenImageBorderColor"));
+            }
 
             currentCustomization.setGuidanceCustomization(guidanceCustomization);
             Log.d(TAG, "Guidance customizations applied.");
@@ -278,6 +288,10 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
             if (overlayCustomizationOptions.hasKey("brandingImage")) {
                 overlayCustomization.brandingImage = overlayCustomizationOptions.getInt("brandingImage");
                 overlayCustomization.showBrandingImage = false;
+            }
+
+            if (overlayCustomizationOptions.hasKey("backgroundColor")) {
+                overlayCustomization.backgroundColor = Color.parseColor(overlayCustomizationOptions.getString("backgroundColor"));
             }
 
             currentCustomization.setOverlayCustomization(overlayCustomization);
