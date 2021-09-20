@@ -352,6 +352,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         // Do the network call and handle result
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .header("X-Device-Key", licenseKey)
+                .header("X-Authorization", FaceTecGlobalState.headers.get("X-Authorization")
                 .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(""))
                 .url(FaceTecGlobalState.FaceTecServerBaseURL + "/session-token")
                 .get()

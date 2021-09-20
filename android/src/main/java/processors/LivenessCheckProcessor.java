@@ -85,6 +85,7 @@ public class LivenessCheckProcessor extends Processor implements FaceTecFaceScan
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .url(FaceTecGlobalState.FaceTecServerBaseURL + "/liveness-3d")
                 .header("Content-Type", "application/json")
+                .header("X-Authorization", FaceTecGlobalState.headers.get("X-Authorization")
                 .header("X-Device-Key", licenseKey)
                 .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(sessionResult.getSessionId()))
 
