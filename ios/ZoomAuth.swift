@@ -332,9 +332,8 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
                 return
             }
             if let responseJSONObj = try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String: AnyObject] {
-                if((responseJSONObj["sessionToken"] as? String) != nil)
-                {
-                    sessionTokenCallback(responseJSONObj["sessionToken"] as! String)
+                if let data = responseJSONObj["data"] as? [String: String] {
+                    sessionTokenCallback(data["sessionToken"] as! String)
                     return
                 }
                 else {
