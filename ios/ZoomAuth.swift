@@ -278,7 +278,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
 
       currentCustomization.guidanceCustomization.buttonBackgroundNormalColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundNormalColor"] as! String)
       currentCustomization.guidanceCustomization.buttonBackgroundHighlightColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundHighlightColor"] as! String)
-      currentCustomization.guidanceCustomization.buttonBackgroundDisabledColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundDisabledColor"] as! String, alpha: guidanceCustomization["buttonBackgroundDisabledColorAlpha"] as! Int)
+      currentCustomization.guidanceCustomization.buttonBackgroundDisabledColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundNormalColor"] as! String, alpha: guidanceCustomization["buttonBackgroundDisabledColorAlpha"] as! Int)
 
       print("Guidance customizations applied.")
     }
@@ -367,8 +367,14 @@ func convertToUIColor(hex: String, alpha: Int = 1) -> UIColor {
         let red = CGFloat((hexNumber & 0xff0000) >> 16) / 255
         let green = CGFloat((hexNumber & 0xff00) >> 8) / 255
         let blue = CGFloat(hexNumber & 0xff) / 255
+        var alphaIndex:CGFloat
+        if (alpha > 1) {
+            alphaIndex = CGFloat(alpha) / 255
+        } else {
+            alphaIndex = CGFloat(alpha)
+        }
 
-        return UIColor(red: red, green: green, blue: blue, alpha: CGFloat(alpha/256))
+        return UIColor(red: red, green: green, blue: blue, alpha: alphaIndex)
       }
     }
   }
