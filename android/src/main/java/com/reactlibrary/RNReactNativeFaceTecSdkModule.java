@@ -376,8 +376,8 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                 response.body().close();
                 try {
                     JSONObject responseJSON = new JSONObject(responseString);
-                    if(responseJSON.getJSONObject("data").has("sessionToken")) {
-                        sessionTokenCallback.onSessionTokenReceived(responseJSON.getJSONObject("data").getString("sessionToken"));
+                    if(responseJSON.has("sessionToken")) {
+                        sessionTokenCallback.onSessionTokenReceived(responseJSON.getString("sessionToken"));
                     }
                     else {
                         handleErrorGettingServerSessionToken();
