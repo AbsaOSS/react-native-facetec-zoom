@@ -1,15 +1,16 @@
 package com.reactlibrary;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.AsyncTask;
 //import androidx.annotation.NonNull;
+import android.os.Build;
 import android.util.Base64;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.Arguments;
@@ -29,14 +30,12 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Map;
 
 import okhttp3.Call;
 import okhttp3.Callback;
 import processors.LivenessCheckProcessor;
 import processors.NetworkingHelpers;
-import processors.Processor;
 import processors.FaceTecGlobalState;
 import io.tradle.reactimagestore.ImageStoreModule;
 
@@ -48,6 +47,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
     private boolean initialized;
     private boolean returnBase64 = false;
     private String licenseKey;
+    private String sessionToken;
 
     private final ActivityEventListener mActivityEventListener = new BaseActivityEventListener() {
         @Override
@@ -98,8 +98,10 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         Log.d(TAG, "initializing");
 
         licenseKey = opts.getString("licenseKey");
+        System.out.println("======INSIDE  initialize, licenseKey: " + opts.getString("appToken"));
 
         if (opts.hasKey("faceTecServerBaseURL")) {
+            System.out.println("======INSIDE  initialize, faceTecServerBaseURL: " + opts.getString("faceTecServerBaseURL"));
             FaceTecGlobalState.FaceTecServerBaseURL = opts.getString("faceTecServerBaseURL");
         }
 
@@ -112,6 +114,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         }
 
         final String facemapEncryptionKey = opts.hasKey("facemapEncryptionKey") ? opts.getString("facemapEncryptionKey") : FaceTecGlobalState.PublicFaceMapEncryptionKey;
+        System.out.println("======INSIDE  initialize, facemapEncryptionKey: " + facemapEncryptionKey);
 
 
         AsyncTask.execute(new Runnable() {
@@ -128,21 +131,99 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                 addOverlayCustomization(currentCustomization, opts);
 
                 FaceTecSDK.setCustomization(currentCustomization);
-                FaceTecSDK.initializeInDevelopmentMode(getCurrentActivity(), licenseKey, facemapEncryptionKey, new FaceTecSDK.InitializeCallback() {
-                    @Override
-                    public void onCompletion(boolean successful) {
-                        WritableMap map = Arguments.createMap();
-                        map.putBoolean("success", successful);
-                        if (successful) {
-                            initialized = true;
-                        } else {
-                            map.putString("status", getSdkStatusString());
-                        }
 
-                        Log.d(TAG, String.format("initialized: %b", successful));
-                        promise.resolve(map);
+                getDeviceToken(new DeviceTokenCallback() {
+                    @Override
+                    public void onDeviceTokenReceived(String deviceToken) {
+                        System.out.println("======INSIDE  onDeviceTokenReceived, BEFORE calling FaceTecSDK.initializeInProductionMode");
+                        System.out.println("====== deviceToken: " + deviceToken);
+                        System.out.println("====== licenseKey: " + licenseKey);
+                        System.out.println("====== facemapEncryptionKey: " + facemapEncryptionKey);
+                        FaceTecSDK.initializeInProductionMode(getCurrentActivity(), deviceToken, licenseKey, facemapEncryptionKey, new FaceTecSDK.InitializeCallback() {
+                            @Override
+                            public void onCompletion(boolean successful) {
+                                WritableMap map = Arguments.createMap();
+                                map.putBoolean("success", successful);
+                                if (successful) {
+                                    initialized = true;
+                                } else {
+                                    System.out.println("====== INSIDE failure, status: " + getSdkStatusString());
+                                    map.putString("status", getSdkStatusString());
+                                }
+
+                                Log.d(TAG, String.format("initialized: %b", successful));
+                                promise.resolve(map);
+                            }
+                        });
                     }
                 });
+            }
+        });
+    }
+
+    interface DeviceTokenCallback {
+        void onDeviceTokenReceived(String deviceToken);
+    }
+
+    public void getDeviceToken(final DeviceTokenCallback deviceTokenCallback) {
+        // Do the network call and handle result
+        System.out.println("====== INSIDE getDeviceToken, X-Authorization key: " + FaceTecGlobalState.headers.get("X-Authorization"));
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .header("X-Device-Key", licenseKey)
+                .header("X-Authorization", FaceTecGlobalState.headers.get("X-Authorization"))
+                .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(""))
+                .url(FaceTecGlobalState.FaceTecServerBaseURL + "/session-token")
+                .get()
+                .build();
+
+        System.out.println("====== licenseKey: " + licenseKey);
+        System.out.println("====== User-Agent: " + FaceTecSDK.createFaceTecAPIUserAgentString(""));
+        System.out.println("====== SessionToken URL: " + FaceTecGlobalState.FaceTecServerBaseURL + "/session-token");
+
+
+        NetworkingHelpers.getApiClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+                Log.d("FaceTecSDKSampleApp", "Exception raised while attempting HTTPS call.");
+
+                // If this comes from HTTPS cancel call, don't set the sub code to NETWORK_ERROR.
+                if(!e.getMessage().equals(NetworkingHelpers.OK_HTTP_RESPONSE_CANCELED)) {
+                    handleErrorGettingTokens();
+                }
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.O)
+            @Override
+            public void onResponse(Call call, okhttp3.Response response) throws IOException {
+                String responseString = response.body().string();
+                response.body().close();
+                try {
+                    System.out.println("====== responseString: " + responseString);
+                    JSONObject responseJSON = new JSONObject(responseString);
+                    if (responseJSON.has("sessionToken")) {
+                        sessionToken = responseJSON.getString("sessionToken");
+                        System.out.println("====== sessionToken: " + sessionToken);
+                    } else {
+                        handleErrorGettingTokens();
+                    }
+                    if (responseJSON.has("deviceToken")) {
+                        System.out.println("====== deviceTokenRaw: " + responseJSON.getString("deviceToken"));
+                        String deviceTokenRaw = responseJSON.getString("deviceToken");
+                        String deviceToken = deviceTokenRaw.replaceAll("new_line", "\n");
+                        System.out.println("====== deviceToken: " + deviceToken);
+                        System.out.println("====== deviceToken split by \\n and joined by +: " + deviceToken.replaceAll("\n", "+"));
+                        deviceTokenCallback.onDeviceTokenReceived(deviceToken);
+                    } else {
+                        System.out.println("======INSIDE  ELSE OF if(responseJSON.has(\"deviceToken\"))");
+                        handleErrorGettingTokens();
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Log.d("FaceTecSDKSampleApp", "Exception raised while attempting to parse JSON result.");
+                    handleErrorGettingTokens();
+                }
             }
         });
     }
@@ -336,63 +417,11 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         returnBase64 = opts.getBoolean("returnBase64");
         final Activity activity = getCurrentActivity();
 
-        getSessionToken(new SessionTokenCallback() {
-            @Override
-            public void onSessionTokenReceived(String sessionToken) {
-                new LivenessCheckProcessor(licenseKey, sessionToken, activity);
-            }
-        });
+        System.out.println("====== INSIDE verify, sessionToken: " + sessionToken);
+        new LivenessCheckProcessor(licenseKey, sessionToken, activity);
     }
 
-    interface SessionTokenCallback {
-        void onSessionTokenReceived(String sessionToken);
-    }
-
-    public void getSessionToken(final SessionTokenCallback sessionTokenCallback) {
-        // Do the network call and handle result
-        okhttp3.Request request = new okhttp3.Request.Builder()
-                .header("X-Device-Key", licenseKey)
-                .header("X-Authorization", FaceTecGlobalState.headers.get("X-Authorization"))
-                .header("User-Agent", FaceTecSDK.createFaceTecAPIUserAgentString(""))
-                .url(FaceTecGlobalState.FaceTecServerBaseURL + "/session-token")
-                .get()
-                .build();
-
-        NetworkingHelpers.getApiClient().newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                e.printStackTrace();
-                Log.d("FaceTecSDKSampleApp", "Exception raised while attempting HTTPS call.");
-
-                // If this comes from HTTPS cancel call, don't set the sub code to NETWORK_ERROR.
-                if(!e.getMessage().equals(NetworkingHelpers.OK_HTTP_RESPONSE_CANCELED)) {
-                    handleErrorGettingServerSessionToken();
-                }
-            }
-
-            @Override
-            public void onResponse(Call call, okhttp3.Response response) throws IOException {
-                String responseString = response.body().string();
-                response.body().close();
-                try {
-                    JSONObject responseJSON = new JSONObject(responseString);
-                    if(responseJSON.has("sessionToken")) {
-                        sessionTokenCallback.onSessionTokenReceived(responseJSON.getString("sessionToken"));
-                    }
-                    else {
-                        handleErrorGettingServerSessionToken();
-                    }
-                }
-                catch(JSONException e) {
-                    e.printStackTrace();
-                    Log.d("FaceTecSDKSampleApp", "Exception raised while attempting to parse JSON result.");
-                    handleErrorGettingServerSessionToken();
-                }
-            }
-        });
-    }
-
-private void handleErrorGettingServerSessionToken() {
+    private void handleErrorGettingTokens() {
         WritableMap resultObj = Arguments.createMap();
         resultObj.putBoolean("success", false);
         verificationPromise.resolve(resultObj);
