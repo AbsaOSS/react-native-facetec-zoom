@@ -17,6 +17,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
   var returnBase64: Bool = false
   var initialized = false
   var licenseKey: String!
+  var sessionToken: String!
 
   func getRCTBridge() -> RCTBridge
   {
@@ -35,9 +36,8 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
       let root = UIApplication.shared.keyWindow!.rootViewController!
       var optionsWithKey = options
       optionsWithKey["licenseKey"] = self.licenseKey
-        self.getSessionToken() { sessionToken in
-            let _ = LivenessCheckProcessor(options: optionsWithKey, fromVC: root, sessionToken: sessionToken, zoomAuth: self)
-        }
+      NSLog("FaceTec - INSIDE verify, sessionToken: \(self.sessionToken)")
+      let _ = LivenessCheckProcessor(options: optionsWithKey, fromVC: root, sessionToken: self.sessionToken, zoomAuth: self)
     }
   }
 
@@ -192,35 +192,44 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
 
     // Apply the customization changes
     FaceTec.sdk.setCustomization(currentCustomization)
-    FaceTec.sdk.initializeInDevelopmentMode(
-        deviceKeyIdentifier: options["licenseKey"] as! String,
-        faceScanEncryptionKey: options["facemapEncryptionKey"] as! String,
-      completion: { (licenseKeyValidated: Bool) -> Void in
-        //
-        // We want to ensure that licenseKey is valid before enabling verification
-        //
-        if licenseKeyValidated {
-          self.initialized = true
-          let message = "licenseKey validated successfully"
-          print(message)
-          resolve([
-            "success": true
-          ])
-        }
-        else {
-          let status = FaceTec.sdk.getStatus().rawValue
-          resolve([
-            "success": false,
-            "status": status
-          ])
 
-//          let errorMsg = "AppToken did not validate.  If Zoom ViewController's are launched, user will see an app token error state"
-//          print(errorMsg)
-//          let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
-//          reject("initialize", errorMsg, err)
-        }
-      }
-    )
+    self.getDeviceToken() { deviceToken in
+        NSLog("FaceTec - INSIDE self.getDeviceToken(), deviceToken: \(deviceToken)")
+        FaceTec.sdk.initializeInProductionMode(
+            productionKeyText: deviceToken,
+            deviceKeyIdentifier: options["licenseKey"] as! String,
+            faceScanEncryptionKey: options["facemapEncryptionKey"] as! String,
+          completion: { (licenseKeyValidated: Bool) -> Void in
+            //
+            // We want to ensure that licenseKey is valid before enabling verification
+            //
+            if licenseKeyValidated {
+              self.initialized = true
+              let message = "licenseKey validated successfully"
+              print(message)
+              resolve([
+                "success": true
+              ])
+            }
+            else {
+              let statusText = FaceTec.sdk.getStatus()
+              NSLog("FaceTec - INSIDE self.getDeviceToken() FAILURE, statusText: \(statusText)")
+              let status = FaceTec.sdk.getStatus().rawValue
+              resolve([
+                "success": false,
+                "status": status
+              ])
+
+    //          let errorMsg = "AppToken did not validate.  If Zoom ViewController's are launched, user will see an app token error state"
+    //          print(errorMsg)
+    //          let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
+    //          reject("initialize", errorMsg, err)
+            }
+          }
+        )
+    }
+
+
   }
 
   func addFrameCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
@@ -314,7 +323,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
 //     currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
   }
 
-    func getSessionToken(sessionTokenCallback: @escaping (String) -> ()) {
+    func getDeviceToken(deviceTokenCallback: @escaping (String) -> ()) {
         let endpoint = ZoomGlobalState.ZoomServerBaseURL + "/session-token"
         let request = NSMutableURLRequest(url: NSURL(string: endpoint)! as URL)
         request.httpMethod = "GET"
@@ -334,7 +343,20 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
             if let responseJSONObj = try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String: AnyObject] {
                 if((responseJSONObj["sessionToken"] as? String) != nil)
                 {
-                    sessionTokenCallback(responseJSONObj["sessionToken"] as! String)
+                    NSLog("FaceTec - INSIDE getDeviceToken, sessionToken: \(responseJSONObj["sessionToken"] as! String)")
+                    self.sessionToken = responseJSONObj["sessionToken"] as! String
+                }
+                else {
+                    print("Exception raised while attempting HTTPS call.")
+                    self.onProcessingComplete(isSuccess: false, faceTecSessionResult: nil)
+                }
+                if((responseJSONObj["deviceToken"] as? String) != nil)
+                {
+                    let rawDeviceToken = responseJSONObj["deviceToken"] as! String
+                    NSLog("FaceTec - INSIDE getDeviceToken, raw deviceToken: \(rawDeviceToken)")
+                    let deviceToken = rawDeviceToken.replacingOccurrences(of: ":", with: "=").replacingOccurrences(of: "new_line", with: "\n")
+                    NSLog("FaceTec - INSIDE getDeviceToken, deviceToken: \(deviceToken)")
+                    deviceTokenCallback(deviceToken)
                     return
                 }
                 else {
