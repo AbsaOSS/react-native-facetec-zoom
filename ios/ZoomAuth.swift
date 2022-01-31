@@ -36,7 +36,6 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
       let root = UIApplication.shared.keyWindow!.rootViewController!
       var optionsWithKey = options
       optionsWithKey["licenseKey"] = self.licenseKey
-      NSLog("FaceTec - INSIDE verify, sessionToken: \(self.sessionToken)")
       let _ = LivenessCheckProcessor(options: optionsWithKey, fromVC: root, sessionToken: self.sessionToken, zoomAuth: self)
     }
   }
@@ -194,7 +193,6 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
     FaceTec.sdk.setCustomization(currentCustomization)
 
     self.getDeviceToken() { deviceToken in
-        NSLog("FaceTec - INSIDE self.getDeviceToken(), deviceToken: \(deviceToken)")
         FaceTec.sdk.initializeInProductionMode(
             productionKeyText: deviceToken,
             deviceKeyIdentifier: options["licenseKey"] as! String,
@@ -213,7 +211,6 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
             }
             else {
               let statusText = FaceTec.sdk.getStatus()
-              NSLog("FaceTec - INSIDE self.getDeviceToken() FAILURE, statusText: \(statusText)")
               let status = FaceTec.sdk.getStatus().rawValue
               resolve([
                 "success": false,
@@ -343,7 +340,6 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
             if let responseJSONObj = try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String: AnyObject] {
                 if((responseJSONObj["sessionToken"] as? String) != nil)
                 {
-                    NSLog("FaceTec - INSIDE getDeviceToken, sessionToken: \(responseJSONObj["sessionToken"] as! String)")
                     self.sessionToken = responseJSONObj["sessionToken"] as! String
                 }
                 else {
@@ -353,9 +349,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
                 if((responseJSONObj["deviceToken"] as? String) != nil)
                 {
                     let rawDeviceToken = responseJSONObj["deviceToken"] as! String
-                    NSLog("FaceTec - INSIDE getDeviceToken, raw deviceToken: \(rawDeviceToken)")
                     let deviceToken = rawDeviceToken.replacingOccurrences(of: ":", with: "=").replacingOccurrences(of: "new_line", with: "\n")
-                    NSLog("FaceTec - INSIDE getDeviceToken, deviceToken: \(deviceToken)")
                     deviceTokenCallback(deviceToken)
                     return
                 }
