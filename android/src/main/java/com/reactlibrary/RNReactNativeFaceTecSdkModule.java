@@ -98,10 +98,8 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         Log.d(TAG, "initializing");
 
         licenseKey = opts.getString("licenseKey");
-        System.out.println("======INSIDE  initialize, licenseKey: " + opts.getString("appToken"));
 
         if (opts.hasKey("faceTecServerBaseURL")) {
-            System.out.println("======INSIDE  initialize, faceTecServerBaseURL: " + opts.getString("faceTecServerBaseURL"));
             FaceTecGlobalState.FaceTecServerBaseURL = opts.getString("faceTecServerBaseURL");
         }
 
@@ -114,8 +112,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         }
 
         final String facemapEncryptionKey = opts.hasKey("facemapEncryptionKey") ? opts.getString("facemapEncryptionKey") : FaceTecGlobalState.PublicFaceMapEncryptionKey;
-        System.out.println("======INSIDE  initialize, facemapEncryptionKey: " + facemapEncryptionKey);
-
 
         AsyncTask.execute(new Runnable() {
             @Override
@@ -135,10 +131,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                 getDeviceToken(new DeviceTokenCallback() {
                     @Override
                     public void onDeviceTokenReceived(String deviceToken) {
-                        System.out.println("======INSIDE  onDeviceTokenReceived, BEFORE calling FaceTecSDK.initializeInProductionMode");
-                        System.out.println("====== deviceToken: " + deviceToken);
-                        System.out.println("====== licenseKey: " + licenseKey);
-                        System.out.println("====== facemapEncryptionKey: " + facemapEncryptionKey);
                         FaceTecSDK.initializeInProductionMode(getCurrentActivity(), deviceToken, licenseKey, facemapEncryptionKey, new FaceTecSDK.InitializeCallback() {
                             @Override
                             public void onCompletion(boolean successful) {
@@ -147,7 +139,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                                 if (successful) {
                                     initialized = true;
                                 } else {
-                                    System.out.println("====== INSIDE failure, status: " + getSdkStatusString());
                                     map.putString("status", getSdkStatusString());
                                 }
 
@@ -167,7 +158,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
 
     public void getDeviceToken(final DeviceTokenCallback deviceTokenCallback) {
         // Do the network call and handle result
-        System.out.println("====== INSIDE getDeviceToken, X-Authorization key: " + FaceTecGlobalState.headers.get("X-Authorization"));
         okhttp3.Request request = new okhttp3.Request.Builder()
                 .header("X-Device-Key", licenseKey)
                 .header("X-Authorization", FaceTecGlobalState.headers.get("X-Authorization"))
@@ -175,11 +165,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                 .url(FaceTecGlobalState.FaceTecServerBaseURL + "/session-token")
                 .get()
                 .build();
-
-        System.out.println("====== licenseKey: " + licenseKey);
-        System.out.println("====== User-Agent: " + FaceTecSDK.createFaceTecAPIUserAgentString(""));
-        System.out.println("====== SessionToken URL: " + FaceTecGlobalState.FaceTecServerBaseURL + "/session-token");
-
 
         NetworkingHelpers.getApiClient().newCall(request).enqueue(new Callback() {
             @Override
@@ -199,23 +184,17 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                 String responseString = response.body().string();
                 response.body().close();
                 try {
-                    System.out.println("====== responseString: " + responseString);
                     JSONObject responseJSON = new JSONObject(responseString);
                     if (responseJSON.has("sessionToken")) {
                         sessionToken = responseJSON.getString("sessionToken");
-                        System.out.println("====== sessionToken: " + sessionToken);
                     } else {
                         handleErrorGettingTokens();
                     }
                     if (responseJSON.has("deviceToken")) {
-                        System.out.println("====== deviceTokenRaw: " + responseJSON.getString("deviceToken"));
                         String deviceTokenRaw = responseJSON.getString("deviceToken");
                         String deviceToken = deviceTokenRaw.replaceAll("new_line", "\n");
-                        System.out.println("====== deviceToken: " + deviceToken);
-                        System.out.println("====== deviceToken split by \\n and joined by +: " + deviceToken.replaceAll("\n", "+"));
                         deviceTokenCallback.onDeviceTokenReceived(deviceToken);
                     } else {
-                        System.out.println("======INSIDE  ELSE OF if(responseJSON.has(\"deviceToken\"))");
                         handleErrorGettingTokens();
                     }
 
@@ -417,7 +396,6 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         returnBase64 = opts.getBoolean("returnBase64");
         final Activity activity = getCurrentActivity();
 
-        System.out.println("====== INSIDE verify, sessionToken: " + sessionToken);
         new LivenessCheckProcessor(licenseKey, sessionToken, activity);
     }
 
