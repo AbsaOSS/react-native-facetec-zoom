@@ -13,6 +13,7 @@ import FaceTecSDK
 class ZoomAuth:  RCTViewManager, URLSessionDelegate {
 
   var verifyResolver: RCTPromiseResolveBlock? = nil
+  var initResolver: RCTPromiseResolveBlock? = nil
   var verifyRejecter: RCTPromiseRejectBlock? = nil
   var returnBase64: Bool = false
   var initialized = false
@@ -39,6 +40,26 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
       let _ = LivenessCheckProcessor(options: optionsWithKey, fromVC: root, sessionToken: self.sessionToken, zoomAuth: self)
     }
   }
+
+  func onInitError(isSuccess: Bool, error: Error?) {
+    var resultJson:[String:Any]
+    if (error != nil) {
+      resultJson = [
+        "success": isSuccess,
+        "status": error!.localizedDescription
+      ]
+      } else {
+      resultJson = [
+        "success": isSuccess,
+      ]
+      }
+
+    if (!isSuccess) {
+      self.sendInitError(resultJson)
+      return
+    }
+  }
+
 
   // Show the final result and transition back into the main interface.
   func onProcessingComplete(isSuccess: Bool, faceTecSessionResult: FaceTecSessionResult?) {
@@ -96,6 +117,15 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
     self.cleanUp()
   }
 
+  func sendInitError(_ result: [String:Any]) -> Void {
+    if (self.initResolver == nil) {
+      return
+  }
+
+    self.initResolver!(result)
+    self.cleanUp()
+    }
+
   // not used at the moment
   func sendError(_ code: String, message: String, error: Error) -> Void {
     if (self.verifyRejecter == nil) {
@@ -109,6 +139,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
   func cleanUp () -> Void {
     self.verifyResolver = nil
     self.verifyRejecter = nil
+    self.initResolver = nil
   }
 
   func uiImageToBase64 (_ image: UIImage) -> String {
@@ -149,6 +180,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
   @objc func initialize(_ options: Dictionary<String, Any>,
                         resolver resolve: @escaping RCTPromiseResolveBlock,
                         rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    self.initResolver = resolve
     self.licenseKey = options["licenseKey"] as? String
 
     if (options["faceTecServerBaseURL"] != nil) {
@@ -324,6 +356,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
         let endpoint = ZoomGlobalState.ZoomServerBaseURL + "/session-token"
         let request = NSMutableURLRequest(url: NSURL(string: endpoint)! as URL)
         request.httpMethod = "GET"
+        request.timeoutInterval = 15
         // Required parameters to interact with the FaceTec Managed Testing API.
         request.addValue(self.licenseKey, forHTTPHeaderField: "X-Device-Key")
         request.addValue(ZoomGlobalState.headers["X-Authorization"] as! String, forHTTPHeaderField: "X-Authorization")
@@ -334,7 +367,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
             // Ensure the data object is not nil otherwise callback with empty dictionary.
             guard let data = data else {
                 print("Exception raised while attempting HTTPS call.")
-                self.onProcessingComplete(isSuccess: false, faceTecSessionResult: nil)
+                self.onInitError(isSuccess: false, error: error)
                 return
             }
             if let responseJSONObj = try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String: AnyObject] {
@@ -344,7 +377,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
                 }
                 else {
                     print("Exception raised while attempting HTTPS call.")
-                    self.onProcessingComplete(isSuccess: false, faceTecSessionResult: nil)
+                    self.onInitError(isSuccess: false, error: error)
                 }
                 if((responseJSONObj["deviceToken"] as? String) != nil)
                 {
@@ -355,7 +388,7 @@ class ZoomAuth:  RCTViewManager, URLSessionDelegate {
                 }
                 else {
                     print("Exception raised while attempting HTTPS call.")
-                    self.onProcessingComplete(isSuccess: false, faceTecSessionResult: nil)
+                    self.onInitError(isSuccess: false, error: error)
                 }
             }
         })

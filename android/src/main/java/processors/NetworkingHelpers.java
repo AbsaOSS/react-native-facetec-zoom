@@ -30,8 +30,8 @@ public class NetworkingHelpers {
     private static OkHttpClient _apiClient = null;
     private static OkHttpClient createApiClient() {
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(180, TimeUnit.SECONDS)
-                .readTimeout(180,TimeUnit.SECONDS)
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(180, TimeUnit.SECONDS)
                 .build();
 

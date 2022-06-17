@@ -98,6 +98,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         Log.d(TAG, "initializing");
 
         licenseKey = opts.getString("licenseKey");
+        verificationPromise = promise;
 
         if (opts.hasKey("faceTecServerBaseURL")) {
             FaceTecGlobalState.FaceTecServerBaseURL = opts.getString("faceTecServerBaseURL");
@@ -174,7 +175,7 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
 
                 // If this comes from HTTPS cancel call, don't set the sub code to NETWORK_ERROR.
                 if(!e.getMessage().equals(NetworkingHelpers.OK_HTTP_RESPONSE_CANCELED)) {
-                    handleErrorGettingTokens();
+                    handleErrorGettingTokens(e);
                 }
             }
 
@@ -188,20 +189,20 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
                     if (responseJSON.has("sessionToken")) {
                         sessionToken = responseJSON.getString("sessionToken");
                     } else {
-                        handleErrorGettingTokens();
+                        handleErrorGettingTokens(null);
                     }
                     if (responseJSON.has("deviceToken")) {
                         String deviceTokenRaw = responseJSON.getString("deviceToken");
                         String deviceToken = deviceTokenRaw.replaceAll("new_line", "\n");
                         deviceTokenCallback.onDeviceTokenReceived(deviceToken);
                     } else {
-                        handleErrorGettingTokens();
+                        handleErrorGettingTokens(null);
                     }
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                     Log.d("FaceTecSDKSampleApp", "Exception raised while attempting to parse JSON result.");
-                    handleErrorGettingTokens();
+                    handleErrorGettingTokens(null);
                 }
             }
         });
@@ -399,9 +400,12 @@ public class RNReactNativeFaceTecSdkModule extends ReactContextBaseJavaModule {
         new LivenessCheckProcessor(licenseKey, sessionToken, activity);
     }
 
-    private void handleErrorGettingTokens() {
+    private void handleErrorGettingTokens(IOException e) {
         WritableMap resultObj = Arguments.createMap();
         resultObj.putBoolean("success", false);
+        if (e != null) {
+            resultObj.putString("status", e.getMessage());
+        }
         verificationPromise.resolve(resultObj);
     }
 
