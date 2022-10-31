@@ -7,16 +7,18 @@
 //
 
 import UIKit
-import ZoomAuthentication
+import FaceTecSDK
 
 @objc(ZoomAuth)
-class ZoomAuth:  RCTViewManager, ProcessingDelegate {
+class ZoomAuth:  RCTViewManager, URLSessionDelegate {
 
   var verifyResolver: RCTPromiseResolveBlock? = nil
+  var initResolver: RCTPromiseResolveBlock? = nil
   var verifyRejecter: RCTPromiseRejectBlock? = nil
   var returnBase64: Bool = false
   var initialized = false
   var licenseKey: String!
+  var sessionToken: String!
 
   func getRCTBridge() -> RCTBridge
   {
@@ -35,13 +37,33 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       let root = UIApplication.shared.keyWindow!.rootViewController!
       var optionsWithKey = options
       optionsWithKey["licenseKey"] = self.licenseKey
-      let _ = LivenessCheckProcessor(delegate: self, fromVC: root, options: optionsWithKey)
+      let _ = LivenessCheckProcessor(options: optionsWithKey, fromVC: root, sessionToken: self.sessionToken, zoomAuth: self)
     }
   }
 
+  func onInitError(isSuccess: Bool, error: Error?) {
+    var resultJson:[String:Any]
+    if (error != nil) {
+      resultJson = [
+        "success": isSuccess,
+        "status": error!.localizedDescription
+      ]
+      } else {
+      resultJson = [
+        "success": isSuccess,
+      ]
+      }
+
+    if (!isSuccess) {
+      self.sendInitError(resultJson)
+      return
+    }
+  }
+
+
   // Show the final result and transition back into the main interface.
-  func onProcessingComplete(isSuccess: Bool, zoomSessionResult: ZoomSessionResult?) {
-    let statusCode = zoomSessionResult?.status.rawValue ?? -1
+  func onProcessingComplete(isSuccess: Bool, faceTecSessionResult: FaceTecSessionResult?) {
+    let statusCode = faceTecSessionResult?.status.rawValue ?? -1
     var resultJson:[String:Any] = [
       "success": isSuccess,
       "status": statusCode
@@ -52,77 +74,40 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
       return
     }
 
-    resultJson["countOfZoomSessionsPerformed"] = zoomSessionResult?.countOfZoomSessionsPerformed ?? 1
-    resultJson["sessionId"] = zoomSessionResult?.sessionId ?? ""
+    resultJson["sessionId"] = faceTecSessionResult?.sessionId ?? ""
 
-    if zoomSessionResult?.faceMetrics == nil {
-      self.sendResult(resultJson)
-      return
-    }
+    if faceTecSessionResult?.faceScanBase64 == nil {
+          self.sendResult(resultJson)
+          return
+        }
 
-    let face = zoomSessionResult?.faceMetrics
-    var faceMetrics: [String:Any] = [:]
-    if self.returnBase64 && face?.faceMapBase64 != nil {
-      faceMetrics["facemap"] = face!.faceMapBase64
-    }
+        var faceMetrics: [String:Any] = [:]
+        if self.returnBase64 && faceTecSessionResult?.faceScanBase64 != nil {
+          faceMetrics["facemap"] = faceTecSessionResult!.faceScanBase64
+        }
 
-//    resultJson["faceMetrics"] = faceMetrics
-    if face?.auditTrail == nil {
-      self.sendResult(resultJson)
-      return
-    }
+    //    resultJson["faceMetrics"] = faceMetrics
+        if faceTecSessionResult?.auditTrailCompressedBase64 == nil {
+          self.sendResult(resultJson)
+          return
+        }
 
-    let auditTrailImages = face!.auditTrail!
-    var auditTrail:[String] = []
-    if self.returnBase64 {
-      if let auditTrailBase64 = face?.auditTrailCompressedBase64 {
-        faceMetrics["auditTrail"] = auditTrailBase64
-      }
-      
-      resultJson["faceMetrics"] = faceMetrics
-      self.sendResult(resultJson)
-      return
-    }
+        var auditTrail:[String] = []
+        if self.returnBase64 {
+          if let auditTrailBase64 = faceTecSessionResult?.auditTrailCompressedBase64 {
+            faceMetrics["auditTrail"] = auditTrailBase64
+          }
 
-    var togo = face?.auditTrailCompressedBase64?.count ?? 0
-    if let faceMap = face?.faceMap {
-      togo += 1
-      storeDataInImageStore(faceMap) { (tag) in
-        faceMetrics["facemap"] = tag
-        togo -= 1
-        if togo == 0 {
           resultJson["faceMetrics"] = faceMetrics
           self.sendResult(resultJson)
+          return
         }
-      }
-    }
-
-    for image in auditTrailImages {
-      uiImageToImageStoreKey(image) { (tag) in
-        if (tag != nil) {
-          auditTrail.append(tag!)
-        }
-
-        togo -= 1
-        if togo == 0 {
-          faceMetrics["auditTrail"] = auditTrail
-          resultJson["faceMetrics"] = faceMetrics
-          self.sendResult(resultJson)
-        }
-      }
-    }
-
-//    EXAMPLE: retrieve facemap
-//    if let zoomFacemap = result.faceMetrics?.zoomFacemap {
-//      // handle ZoOm Facemap
-//    }
-
   }
-  
+
   // Show the final result and transition back into the main interface.
-  func onProcessingComplete(isSuccess: Bool, zoomSessionResult: ZoomSessionResult?, zoomIDScanResult: ZoomIDScanResult?) {
+  func onProcessingComplete(isSuccess: Bool, faceTecSessionResult: FaceTecSessionResult?, faceTecIDScanResult: FaceTecIDScanResult?) {
   }
-  
+
   func sendResult(_ result: [String:Any]) -> Void {
     if (self.verifyResolver == nil) {
       return
@@ -131,6 +116,15 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
     self.verifyResolver!(result)
     self.cleanUp()
   }
+
+  func sendInitError(_ result: [String:Any]) -> Void {
+    if (self.initResolver == nil) {
+      return
+  }
+
+    self.initResolver!(result)
+    self.cleanUp()
+    }
 
   // not used at the moment
   func sendError(_ code: String, message: String, error: Error) -> Void {
@@ -145,6 +139,7 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
   func cleanUp () -> Void {
     self.verifyResolver = nil
     self.verifyRejecter = nil
+    self.initResolver = nil
   }
 
   func uiImageToBase64 (_ image: UIImage) -> String {
@@ -165,15 +160,10 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
   }
 
   // React Method
-  @objc func preload() -> Void {
-    Zoom.sdk.preload()
-  }
-
-  // React Method
   @objc func getVersion(_ resolve: RCTPromiseResolveBlock,
                         rejecter reject: RCTPromiseRejectBlock) -> Void {
 
-      let result: String = Zoom.sdk.version
+      let result: String = FaceTec.sdk.version
 
       if ( !result.isEmpty ) {
           resolve([
@@ -190,19 +180,30 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
   @objc func initialize(_ options: Dictionary<String, Any>,
                         resolver resolve: @escaping RCTPromiseResolveBlock,
                         rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    self.initResolver = resolve
     self.licenseKey = options["licenseKey"] as? String
 
-    if (options["facemapEncryptionKey"] != nil) {
-      let publicKey = options["facemapEncryptionKey"] as! String
-      Zoom.sdk.setFaceMapEncryptionKey(publicKey: publicKey);
+    if (options["faceTecServerBaseURL"] != nil) {
+        ZoomGlobalState.ZoomServerBaseURL = options["faceTecServerBaseURL"] as! String
     }
 
-    Zoom.sdk.auditTrailType = .height640 // otherwise no auditTrail images
+    if (options["headers"] != nil) {
+        ZoomGlobalState.headers = options["headers"] as! [String: String]
+    }
+
+    FaceTec.sdk.auditTrailType = .height640 // otherwise no auditTrail images
 
     // Create the customization object
-    let currentCustomization: ZoomCustomization = ZoomCustomization()
+    let currentCustomization: FaceTecCustomization = FaceTecCustomization()
     // disable the "Your App Logo" section
+
     currentCustomization.overlayCustomization.brandingImage = nil
+
+    let overlayCustomization: Dictionary<String, Any> = options["overlayCustomization"] as! Dictionary<String, Any>
+    if (!overlayCustomization.isEmpty) {
+          currentCustomization.overlayCustomization.backgroundColor = convertToUIColor(hex: overlayCustomization["backgroundColor"] as! String)
+        }
+
 //    currentCustomization.overlayCustomization.blurEffectOpacity = 0
 //    currentCustomization.frameCustomization.blurEffectOpacity = 0
 //    currentCustomization.guidanceCustomization.showIntroScreenBrandingImage = false
@@ -214,48 +215,220 @@ class ZoomAuth:  RCTViewManager, ProcessingDelegate {
 //      currentCustomization.frameCustomization.topMargin = options["topMargin"] as! Int32
 //    }
 
-    // Apply the customization changes
-    Zoom.sdk.setCustomization(currentCustomization)
-    Zoom.sdk.initialize(
-      licenseKeyIdentifier: options["licenseKey"] as! String,
-      completion: { (licenseKeyValidated: Bool) -> Void in
-        //
-        // We want to ensure that licenseKey is valid before enabling verification
-        //
-        if licenseKeyValidated {
-          self.initialized = true
-          let message = "licenseKey validated successfully"
-          print(message)
-          resolve([
-            "success": true
-          ])
-        }
-        else {
-          let status = Zoom.sdk.getStatus().rawValue
-          resolve([
-            "success": false,
-            "status": status
-          ])
+    addFrameCustomizations(currentCustomization: currentCustomization, options: options)
+    addFeedbackCustomizations(currentCustomization: currentCustomization, options: options)
+    addOvalCustomizations(currentCustomization: currentCustomization, options: options)
+    addGuidanceCustomizations(currentCustomization: currentCustomization, options: options)
+    addResultScreenCustomizations(currentCustomization: currentCustomization, options: options)
 
-//          let errorMsg = "AppToken did not validate.  If Zoom ViewController's are launched, user will see an app token error state"
-//          print(errorMsg)
-//          let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
-//          reject("initialize", errorMsg, err)
-        }
-      }
-    )
+    // Apply the customization changes
+    FaceTec.sdk.setCustomization(currentCustomization)
+
+    self.getDeviceToken() { deviceToken in
+        FaceTec.sdk.initializeInProductionMode(
+            productionKeyText: deviceToken,
+            deviceKeyIdentifier: options["licenseKey"] as! String,
+            faceScanEncryptionKey: options["facemapEncryptionKey"] as! String,
+          completion: { (licenseKeyValidated: Bool) -> Void in
+            //
+            // We want to ensure that licenseKey is valid before enabling verification
+            //
+            if licenseKeyValidated {
+              self.initialized = true
+              let message = "licenseKey validated successfully"
+              print(message)
+              resolve([
+                "success": true
+              ])
+            }
+            else {
+              let statusText = FaceTec.sdk.getStatus()
+              let status = FaceTec.sdk.getStatus().rawValue
+              resolve([
+                "success": false,
+                "status": status
+              ])
+
+    //          let errorMsg = "AppToken did not validate.  If Zoom ViewController's are launched, user will see an app token error state"
+    //          print(errorMsg)
+    //          let err: NSError = NSError(domain: errorMsg, code: 0, userInfo: nil)
+    //          reject("initialize", errorMsg, err)
+            }
+          }
+        )
+    }
+
+
   }
 
-//  func centerZoomFrameCustomization(currentZoomCustomization: ZoomCustomization) {
-//    let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
-//    var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
-//    // Detect iPhone X and iPad displays
-//    if UIScreen.main.fixedCoordinateSpace.bounds.size.height >= 812 {
-//      let screenWidth = UIScreen.main.fixedCoordinateSpace.bounds.size.width
-//      frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
-//    }
-//    let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
+  func addFrameCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
+    // Sample UI Customization: vertically center the ZoOm frame within the device's display
+//     if (options["centerFrame"] as? Bool)! {
+//       centerZoomFrameCustomization(currentZoomCustomization: currentCustomization)
+//     }
+    let frameCustomization: Dictionary<String, Any> = options["frameCustomization"] as! Dictionary<String, Any>
+    if (!frameCustomization.isEmpty) {
+        currentCustomization.frameCustomization.backgroundColor = convertToUIColor(hex: frameCustomization["backgroundColor"] as! String)
+        currentCustomization.frameCustomization.borderColor = convertToUIColor(hex: frameCustomization["borderColor"] as! String)
+    }
+  }
+
+  func addFeedbackCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
+    let feedbackCustomization: Dictionary<String, Any> = options["feedbackCustomization"] as! Dictionary<String, Any>
+    // Create gradient layer for a custom feedback bar background on iOS
+    if (!feedbackCustomization.isEmpty) {
+      let backgroundColors = feedbackCustomization["backgroundColor"] as! Array<String>
+      let zoomGradientLayer = createGradientLayer(_self: self, hexColor1: backgroundColors[0], hexColor2: backgroundColors[1])
+      currentCustomization.feedbackCustomization.backgroundColor = zoomGradientLayer
+      currentCustomization.feedbackCustomization.textColor = convertToUIColor(hex: feedbackCustomization["textColor"] as! String)
+      print("Feedback customizations applied.")
+    }
+  }
+
+  func addOvalCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
+    let ovalCustomization: Dictionary<String, Any> = options["ovalCustomization"] as! Dictionary<String, Any>
+    if (!ovalCustomization.isEmpty) {
+      let supportedColorOvalCustomizations = ["strokeColor", "progressColor1", "progressColor2"]
+      for property in supportedColorOvalCustomizations {
+        if (ovalCustomization[property] != nil) {
+          let value = ovalCustomization[property]
+          currentCustomization.ovalCustomization.setValue(convertToUIColor(hex: value as! String), forKey: property)
+        }
+      }
+      print("Oval customizations applied.")
+    }
+  }
+
+  func addGuidanceCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
+    let guidanceCustomization: Dictionary<String, Any> = options["guidanceCustomization"] as! Dictionary<String, Any>
+    // Create gradient layer for a custom feedback bar background on iOS
+    if (!guidanceCustomization.isEmpty) {
+      currentCustomization.guidanceCustomization.foregroundColor = convertToUIColor(hex: guidanceCustomization["foregroundColor"] as! String)
+      currentCustomization.guidanceCustomization.readyScreenHeaderTextColor = convertToUIColor(hex: guidanceCustomization["readyScreenHeaderTextColor"] as! String)
+      currentCustomization.guidanceCustomization.readyScreenSubtextTextColor = convertToUIColor(hex: guidanceCustomization["readyScreenSubtextTextColor"] as! String)
+      currentCustomization.guidanceCustomization.retryScreenHeaderTextColor = convertToUIColor(hex: guidanceCustomization["retryScreenHeaderTextColor"] as! String)
+      currentCustomization.guidanceCustomization.retryScreenSubtextTextColor = convertToUIColor(hex: guidanceCustomization["retryScreenSubtextTextColor"] as! String)
+      currentCustomization.guidanceCustomization.retryScreenImageBorderColor = convertToUIColor(hex: guidanceCustomization["retryScreenImageBorderColor"] as! String)
+
+      currentCustomization.guidanceCustomization.buttonTextNormalColor = convertToUIColor(hex: guidanceCustomization["buttonTextNormalColor"] as! String)
+      currentCustomization.guidanceCustomization.buttonTextHighlightColor = convertToUIColor(hex: guidanceCustomization["buttonTextHighlightColor"] as! String)
+      currentCustomization.guidanceCustomization.buttonTextDisabledColor = convertToUIColor(hex: guidanceCustomization["buttonTextDisabledColor"] as! String)
+
+      currentCustomization.guidanceCustomization.buttonBackgroundNormalColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundNormalColor"] as! String)
+      currentCustomization.guidanceCustomization.buttonBackgroundHighlightColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundHighlightColor"] as! String)
+      currentCustomization.guidanceCustomization.buttonBackgroundDisabledColor = convertToUIColor(hex: guidanceCustomization["buttonBackgroundNormalColor"] as! String, alpha: guidanceCustomization["buttonBackgroundDisabledColorAlpha"] as! Int)
+
+      print("Guidance customizations applied.")
+    }
+  }
+
+  func addResultScreenCustomizations(currentCustomization: FaceTecCustomization, options: Dictionary<String, Any>) {
+    let resultScreenCustomization: Dictionary<String, Any> = options["resultScreenCustomization"] as! Dictionary<String, Any>
+    // Create gradient layer for a custom feedback bar background on iOS
+    if (!resultScreenCustomization.isEmpty) {
+      currentCustomization.resultScreenCustomization.foregroundColor = convertToUIColor(hex: resultScreenCustomization["foregroundColor"] as! String)
+      currentCustomization.resultScreenCustomization.activityIndicatorColor = convertToUIColor(hex: resultScreenCustomization["activityIndicatorColor"] as! String)
+      currentCustomization.resultScreenCustomization.uploadProgressFillColor = convertToUIColor(hex: resultScreenCustomization["uploadProgressFillColor"] as! String)
+      currentCustomization.resultScreenCustomization.uploadProgressTrackColor = convertToUIColor(hex: resultScreenCustomization["uploadProgressTrackColor"] as! String)
+
+      currentCustomization.resultScreenCustomization.resultAnimationBackgroundColor = convertToUIColor(hex: resultScreenCustomization["resultAnimationBackgroundColor"] as! String)
+      currentCustomization.resultScreenCustomization.resultAnimationForegroundColor = convertToUIColor(hex: resultScreenCustomization["resultAnimationForegroundColor"] as! String)
+
+      print("Guidance customizations applied.")
+    }
+  }
+
+// topMargin and sizeRatio not defined in FaceTecCustomization.frameCustomization
+  func centerZoomFrameCustomization(currentZoomCustomization: FaceTecCustomization) {
+//     let screenHeight: CGFloat = UIScreen.main.fixedCoordinateSpace.bounds.size.height
+//     var frameHeight: CGFloat = screenHeight * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+    // Detect iPhone X and iPad displays
+//     if UIScreen.main.fixedCoordinateSpace.bounds.size.height >= 812 {
+//       let screenWidth = UIScreen.main.fixedCoordinateSpace.bounds.size.width
+//       frameHeight = screenWidth * (16.0/9.0) * CGFloat(currentZoomCustomization.frameCustomization.sizeRatio)
+//     }
+//     let topMarginToCenterFrame = (screenHeight - frameHeight)/2.0
 //
-//    currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
-//  }
+//     currentZoomCustomization.frameCustomization.topMargin = Int32(topMarginToCenterFrame)
+  }
+
+    func getDeviceToken(deviceTokenCallback: @escaping (String) -> ()) {
+        let endpoint = ZoomGlobalState.ZoomServerBaseURL + "/session-token"
+        let request = NSMutableURLRequest(url: NSURL(string: endpoint)! as URL)
+        request.httpMethod = "GET"
+        request.timeoutInterval = 15
+        // Required parameters to interact with the FaceTec Managed Testing API.
+        request.addValue(self.licenseKey, forHTTPHeaderField: "X-Device-Key")
+        request.addValue(ZoomGlobalState.headers["X-Authorization"] as! String, forHTTPHeaderField: "X-Authorization")
+        request.addValue(FaceTec.sdk.createFaceTecAPIUserAgentString(""), forHTTPHeaderField: "User-Agent")
+
+        let session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: OperationQueue.main)
+        let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
+            // Ensure the data object is not nil otherwise callback with empty dictionary.
+            guard let data = data else {
+                print("Exception raised while attempting HTTPS call.")
+                self.onInitError(isSuccess: false, error: error)
+                return
+            }
+            if let responseJSONObj = try? JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String: AnyObject] {
+                if((responseJSONObj["sessionToken"] as? String) != nil)
+                {
+                    self.sessionToken = responseJSONObj["sessionToken"] as! String
+                }
+                else {
+                    print("Exception raised while attempting HTTPS call.")
+                    self.onInitError(isSuccess: false, error: error)
+                }
+                if((responseJSONObj["deviceToken"] as? String) != nil)
+                {
+                    let rawDeviceToken = responseJSONObj["deviceToken"] as! String
+                    let deviceToken = rawDeviceToken.replacingOccurrences(of: ":", with: "=").replacingOccurrences(of: "new_line", with: "\n")
+                    deviceTokenCallback(deviceToken)
+                    return
+                }
+                else {
+                    print("Exception raised while attempting HTTPS call.")
+                    self.onInitError(isSuccess: false, error: error)
+                }
+            }
+        })
+        task.resume()
+    }
 }
+
+func createGradientLayer(_self: ZoomAuth, hexColor1: String, hexColor2: String) -> CAGradientLayer {
+  let gradientLayer = CAGradientLayer()
+  gradientLayer.frame = _self.view().bounds
+  gradientLayer.colors = [convertToUIColor(hex: hexColor1).cgColor, convertToUIColor(hex: hexColor2).cgColor]
+  _self.view().layer.addSublayer(gradientLayer)
+  return gradientLayer
+}
+
+func convertToUIColor(hex: String, alpha: Int = 1) -> UIColor {
+  if hex.hasPrefix("#") {
+    let start = hex.index(hex.startIndex, offsetBy: 1)
+    let hexColor = String(hex[start...])
+
+    if hexColor.count == 6 {
+      let scanner = Scanner(string: hexColor)
+      var hexNumber: UInt64 = 0
+
+      if scanner.scanHexInt64(&hexNumber) {
+        let red = CGFloat((hexNumber & 0xff0000) >> 16) / 255
+        let green = CGFloat((hexNumber & 0xff00) >> 8) / 255
+        let blue = CGFloat(hexNumber & 0xff) / 255
+        var alphaIndex:CGFloat
+        if (alpha > 1) {
+            alphaIndex = CGFloat(alpha) / 255
+        } else {
+            alphaIndex = CGFloat(alpha)
+        }
+
+        return UIColor(red: red, green: green, blue: blue, alpha: alphaIndex)
+      }
+    }
+  }
+
+  return UIColor(red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+}
+

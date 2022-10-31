@@ -30,7 +30,7 @@ android {
     buildToolsVersion rootProject.hasProperty('buildToolsVersion') ? rootProject.buildToolsVersion : DEFAULT_BUILD_TOOLS_VERSION
 
     defaultConfig {
-        minSdkVersion 18
+        minSdkVersion 19
         targetSdkVersion rootProject.hasProperty('targetSdkVersion') ? rootProject.targetSdkVersion : DEFAULT_TARGET_SDK_VERSION
         versionCode 1
         versionName "1.0"
@@ -61,7 +61,7 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
     // implementation "com.facetec:zoom-authentication-hybrid:$zoomSdkVersion"
     implementation project(':react-native-image-store')
-    implementation files('zoom-authentication-8.1.1.aar')
+    compileOnly files('facetec-sdk-9.4.4.aar')
     implementation 'com.squareup.okhttp3:okhttp:3.10.0'
 }
 
